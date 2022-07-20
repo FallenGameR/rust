@@ -18,7 +18,7 @@ fn main() {
         d = gcd(d, *m);
     }
 
-    println!("The greatest common divisor or {:?} is {}", numbers, d);
+    println!("The greatest common divisor of {:?} is {}", numbers, d);
 }
 
 fn gcd(mut a: u64, mut b: u64) -> u64 {
