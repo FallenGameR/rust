@@ -31,7 +31,7 @@ fn get_index() -> HttpResponse {
 }
 
 fn post_gcd(form: web::Form<GdcParameters>) -> HttpResponse{
-    if form.n == 0 || form.m == 0 {
+    if form.a == 0 || form.b == 0 {
         return HttpResponse::BadRequest()
             .content_type("text/html")
             .body("One of the arguments is 0");
@@ -39,9 +39,9 @@ fn post_gcd(form: web::Form<GdcParameters>) -> HttpResponse{
 
     let response =
         format!("The greatest common divisor of {} and {} is {}",
-            form.n,
-            form.m,
-            gcd(form.n, form.m));
+            form.a,
+            form.b,
+            gcd(form.a, form.b));
 
     HttpResponse::Ok()
         .content_type("text/html")
@@ -50,8 +50,8 @@ fn post_gcd(form: web::Form<GdcParameters>) -> HttpResponse{
 
 #[derive(Deserialize)]
 struct GdcParameters {
-    n: u64,
-    m: u64,
+    a: u64,
+    b: u64,
 }
 
 fn gcd(mut a: u64, mut b: u64) -> u64 {
