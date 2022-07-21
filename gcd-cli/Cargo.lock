@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "cli-gcd"
+name = "gcd-cli"
 version = "0.1.0"
