@@ -1,5 +1,5 @@
 [package]
-name = "cli-gcd"
+name = "gcd-cli"
 version = "0.1.0"
 edition = "2021"
 
