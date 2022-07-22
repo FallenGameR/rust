@@ -5,6 +5,42 @@ fn main() {
     println!("Hello, world!");
 }
 
+/// converts from pixel space to dot space knowing boundary boxes for both
+fn convert_pixel_to_dot(
+    pixel_frame_width_height: (usize, usize),
+    pixel_column_row: (usize, usize),
+    dot_left_upper: Complex<f64>,
+    dot_right_lower: Complex<f64>,
+) -> Complex<f64> {
+    let dot_frame_width = dot_right_lower.re - dot_left_upper.re;
+    let dot_frame_height = dot_left_upper.im - dot_right_lower.im;
+    let dot_re_relative =
+        pixel_column_row.0 as f64 * dot_frame_width / pixel_frame_width_height.0 as f64;
+    let dot_im_relative =
+        pixel_column_row.1 as f64 * dot_frame_height / pixel_frame_width_height.1 as f64;
+
+    Complex {
+        re: dot_left_upper.re + dot_re_relative,
+        im: dot_left_upper.im - dot_im_relative,
+    }
+}
+
+#[test]
+fn test_convert_pixel_to_dot() {
+    assert_eq!(
+        convert_pixel_to_dot(
+            (100, 200),
+            (25, 175),
+            Complex { re: -1.0, im: 1.0 },
+            Complex { re: 1.0, im: -1.0 }
+        ),
+        Complex {
+            re: -0.5,
+            im: -0.75
+        }
+    );
+}
+
 /// Parses pairs of T separated by separator char.
 /// None if could not parse
 /// (T,T) if parsing was successful
@@ -38,9 +74,14 @@ fn parse_complex(s: &str) -> Option<Complex<f64>> {
 }
 
 #[test]
-fn test_parse_complex()
-{
-    assert_eq!(parse_complex("1.25,-0.635"), Some(Complex{ re: 1.25, im: -0.635 }));
+fn test_parse_complex() {
+    assert_eq!(
+        parse_complex("1.25,-0.635"),
+        Some(Complex {
+            re: 1.25,
+            im: -0.635
+        })
+    );
     assert_eq!(parse_complex(",1"), None);
 }
 
