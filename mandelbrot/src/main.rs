@@ -5,19 +5,41 @@ fn main() {
     println!("Hello, world!");
 }
 
+/// Render viewport of mandelbrot set into 255 grayscale
+fn render(
+    pixels: &mut [u8],
+    pixel_frame_col_row: (usize, usize),
+    dot_left_upper: Complex<f64>,
+    dot_right_lower: Complex<f64>,
+) {
+    assert!(pixels.len() == pixel_frame_col_row.0 * pixel_frame_col_row.1);
+
+    for row in 0..pixel_frame_col_row.1 {
+        for col in 0..pixel_frame_col_row.0 {
+            let dot = convert_pixel_to_dot(
+                pixel_frame_col_row, (col, row), dot_left_upper, dot_right_lower);
+            pixels[row * pixel_frame_col_row.0 + col] =
+                match escape_time(dot, 255) {
+                    None => 0,
+                    Some(count) => 255 - count as u8,
+                };
+        }
+    }
+}
+
 /// converts from pixel space to dot space knowing boundary boxes for both
 fn convert_pixel_to_dot(
-    pixel_frame_width_height: (usize, usize),
-    pixel_column_row: (usize, usize),
+    pixel_frame_col_row: (usize, usize),
+    pixel_col_row: (usize, usize),
     dot_left_upper: Complex<f64>,
     dot_right_lower: Complex<f64>,
 ) -> Complex<f64> {
     let dot_frame_width = dot_right_lower.re - dot_left_upper.re;
     let dot_frame_height = dot_left_upper.im - dot_right_lower.im;
     let dot_re_relative =
-        pixel_column_row.0 as f64 * dot_frame_width / pixel_frame_width_height.0 as f64;
+        pixel_col_row.0 as f64 * dot_frame_width / pixel_frame_col_row.0 as f64;
     let dot_im_relative =
-        pixel_column_row.1 as f64 * dot_frame_height / pixel_frame_width_height.1 as f64;
+        pixel_col_row.1 as f64 * dot_frame_height / pixel_frame_col_row.1 as f64;
 
     Complex {
         re: dot_left_upper.re + dot_re_relative,
