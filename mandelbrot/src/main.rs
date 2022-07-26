@@ -5,6 +5,11 @@ use std::env;
 use std::fs::File;
 use std::str::FromStr;
 
+/// cargo build --release
+/// & .\target\release\mandelbrot.exe mandel.png 4000x3000 -1.08,0.28 -1.03,0.23
+///
+/// Single thread:
+/// - SEKIREI - 5.6 sec
 fn main() {
     let args: Vec<String> = env::args().collect();
 
