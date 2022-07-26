@@ -4,18 +4,24 @@ use num::Complex;
 use std::env;
 use std::fs::File;
 use std::str::FromStr;
+extern crate num_cpus;
 
 /// cargo build --release
 /// & .\target\release\mandelbrot.exe mandel.png 4000x3000 -1.08,0.28 -1.03,0.23
 ///
+/// cargo run mandel.png 1000x750 -1.08,0.28 -1.03,0.23
+///
 /// Single thread:
 /// - SEKIREI - 5.6 sec
+///
+/// Multi thread:
+/// - SEKIREI - 3.0 sec
 fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() != 5 {
         eprintln!("Usage: {} <file.png> <width>x<height> <upper_left_coordinate> <lower_right_coordinate>", args[0]);
-        eprintln!("Example: {} mandel.png mandel.png 4000x3000 -1.08,0.28 -1.03,0.23", args[0]);
+        eprintln!("Example: {} mandel.png 4000x3000 -1.08,0.28 -1.03,0.23", args[0]);
         std::process::exit(1);
     }
 
@@ -24,7 +30,30 @@ fn main() {
     let lower_right = parse_complex(&args[4]).expect("error parsing lower right dot");
     let mut pixels = vec![0; bounds.0 * bounds.1];
 
-    render(&mut pixels, bounds, upper_left, lower_right);
+    // Single threaded
+    // render(&mut pixels, bounds, upper_left, lower_right);
+
+    // Multi threaded
+    let threads = num_cpus::get();
+    println!("Threads used: {}", threads);
+    let rows_in_part = bounds.1 / threads + 1;
+
+    {
+        let parts: Vec<&mut [u8]> = pixels.chunks_mut(rows_in_part * bounds.0).collect();
+        crossbeam::scope(|thread_spawner| {
+            for (i, part) in parts.into_iter().enumerate() {
+                let top = rows_in_part * i;
+                let height = part.len() / bounds.0;
+                let part_bounds = (bounds.0, height);
+                let part_upper_left = convert_pixel_to_dot(bounds, (0, top), upper_left, lower_right);
+                let part_lower_right = convert_pixel_to_dot(bounds, (bounds.0, top + height), upper_left, lower_right);
+                thread_spawner.spawn(move |_| {
+                    render(part, part_bounds, part_upper_left, part_lower_right);
+                });
+            }
+
+        }).unwrap();
+    }
 
     write_image(&args[1], &pixels, bounds).expect("error writing output PNG file");
 }
