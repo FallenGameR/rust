@@ -1,5 +1,7 @@
 use text_colorizer::*;
 use std::env;
+use std::fs;
+use regex::Regex;
 
 #[derive(Debug)]
 struct Arguments {
@@ -11,7 +13,35 @@ struct Arguments {
 
 fn main() {
     let args = parse_args();
-    println!("{:?}", args);
+
+    let data = match fs::read_to_string(&args.in_path) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("{} failed to read from file '{}': {:?}", "Error:".red().bold(), args.in_path, e);
+            std::process::exit(1);
+        }
+    };
+
+    let replaced_data = match replace(&args.old_regex, &args.new_text, &data) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("{} failed to replace text: {:?}", "Error:".red().bold(), e);
+            std::process::exit(1);
+        }
+    };
+
+    match fs::write(&args.out_path, &replaced_data) {
+        Ok(_) => {},
+        Err(e) => {
+            eprintln!("{} failed to write to file '{}': {:?}", "Error:".red().bold(), args.in_path, e);
+            std::process::exit(1);
+        }
+    };
+}
+
+fn replace(target: &str, replacement: &str, text: &str) -> Result<String, regex::Error> {
+    let regex = Regex::new(target)?;
+    Ok(regex.replace_all(text, replacement).to_string())
 }
 
 fn print_usage() {
