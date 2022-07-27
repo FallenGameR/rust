@@ -14,10 +14,12 @@ extern crate num_cpus;
 /// Single thread:
 /// - SEKIREI   - 5.6 sec
 /// - ALEXKO-11 - 4.2 sec x1.3
+/// - ALEXKO-LS - 6.5 sec x0.8
 ///
 /// Multi thread:
 /// - SEKIREI   - 3.0 sec
 /// - ALEXKO-11 - 0.5 sec x6
+/// - ALEXKO-LS - 1.1 sec x2.7
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -33,9 +35,9 @@ fn main() {
     let mut pixels = vec![0; bounds.0 * bounds.1];
 
     // Single threaded
-    render(&mut pixels, bounds, upper_left, lower_right);
+    //render(&mut pixels, bounds, upper_left, lower_right);
 
-    /*
+    //*
     // Multi threaded
     let threads = num_cpus::get();
     println!("Threads used: {}", threads);
@@ -57,7 +59,7 @@ fn main() {
 
         }).unwrap();
     }
-    */
+    //*/
 
     write_image(&args[1], &pixels, bounds).expect("error writing output PNG file");
 }
