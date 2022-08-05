@@ -1,3 +1,5 @@
+use std::cmp::{Ordering, Reverse};
+
 struct Poly<const N: usize> {
     coef: [f64; N]
 }
@@ -16,4 +18,10 @@ fn main() {
     //"test".eq("test");
     //"test".to_string().eq("test");
     //let ply = Poly<{5+1}>()
+    //matches!( 0 >= 1, Some(Ordering::Less | Ordering::Equal) );
+    //std::cmp::Reverse
+    let mut v = vec![1, 2, 3, 4, 5, 6];
+    v.sort_by_key(|&num| (num > 3, Reverse(num)));
+    println!("{:?}", v);
+
 }
