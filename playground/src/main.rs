@@ -13,6 +13,6 @@ fn main() {
     //f = "ddd".to_string();
     //let mut v = vec![0; 10];
     //std::mem::rep
-
+    //"test".eq("test");
     //let ply = Poly<{5+1}>()
 }
