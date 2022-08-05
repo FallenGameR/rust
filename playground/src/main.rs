@@ -14,5 +14,6 @@ fn main() {
     //let mut v = vec![0; 10];
     //std::mem::rep
     //"test".eq("test");
+    //"test".to_string().eq("test");
     //let ply = Poly<{5+1}>()
 }
