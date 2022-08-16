@@ -8,7 +8,7 @@ use rayon::prelude::*;
 extern crate num_cpus;
 
 /// cargo build --release
-/// hyperfine ".\target\release\mandelbrot.exe mandel.png 4000x3000 -1.08,0.28 -1.03,0.23"
+/// hyperfine ".\target\release\mandelbrot.exe mandel.png 4000x3000 -1.08,0.28 -1.03,0.23" --warmup 1
 ///
 /// cargo run mandel.png 1000x750 -1.08,0.28 -1.03,0.23; start mandel.png
 ///
