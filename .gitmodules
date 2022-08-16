@@ -1,0 +1,3 @@
+[submodule "fingertips"]
+	path = fingertips
+	url = https://github.com/ProgrammingRust/fingertips.git
