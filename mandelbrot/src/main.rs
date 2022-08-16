@@ -4,12 +4,13 @@ use num::Complex;
 use std::env;
 use std::fs::File;
 use std::str::FromStr;
+use rayon::prelude::*;
 extern crate num_cpus;
 
 /// cargo build --release
-/// hyperfine "& .\target\release\mandelbrot.exe mandel.png 4000x3000 -1.08,0.28 -1.03,0.23"
+/// hyperfine ".\target\release\mandelbrot.exe mandel.png 4000x3000 -1.08,0.28 -1.03,0.23"
 ///
-/// cargo run mandel.png 1000x750 -1.08,0.28 -1.03,0.23
+/// cargo run mandel.png 1000x750 -1.08,0.28 -1.03,0.23; start mandel.png
 ///
 /// Single thread:
 /// - SEKIREI   - 5.6 sec
@@ -22,7 +23,7 @@ extern crate num_cpus;
 /// - ALEXKO-LS - 1.1 sec x2.7
 ///
 /// Rayon mutithread
-/// - ALEXKO-11 -
+/// - ALEXKO-11 - 0.3 sec
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -40,10 +41,33 @@ fn main() {
     // Single threaded
     //render_single_thread(&mut pixels, bounds, upper_left, lower_right);
 
-    // Multi threaded
-    render_multi_thread_crossbeam(&mut pixels, bounds, upper_left, lower_right);
+    // Multi threaded crossbeam - chunk per thread
+    //render_multi_thread_crossbeam(&mut pixels, bounds, upper_left, lower_right);
+
+    // Multi threaded rayon - line per thread
+    render_multi_thread_rayon(&mut pixels, bounds, upper_left, lower_right);
 
     write_image(&args[1], &pixels, bounds).expect("error writing output PNG file");
+}
+
+fn render_multi_thread_rayon(
+    pixels: &mut[u8],
+    bounds: (usize, usize),
+    upper_left: Complex<f64>,
+    lower_right: Complex<f64>
+) {
+    let lines: Vec<(usize, &mut[u8])> = pixels
+        .chunks_mut(bounds.0)
+        .enumerate()
+        .collect();
+
+    lines.into_par_iter()
+        .for_each(|(top, line)| {
+            let line_bounds = (bounds.0, 1);
+            let line_upper_left = convert_pixel_to_dot(bounds, (0, top), upper_left, lower_right);
+            let line_lower_right = convert_pixel_to_dot(bounds, (bounds.0, top+1), upper_left, lower_right);
+            render(line, line_bounds, line_upper_left, line_lower_right);
+        });
 }
 
 fn render_multi_thread_crossbeam(
