@@ -20,8 +20,10 @@ fn main() {
     //let ply = Poly<{5+1}>()
     //matches!( 0 >= 1, Some(Ordering::Less | Ordering::Equal) );
     //std::cmp::Reverse
-    let mut v = vec![1, 2, 3, 4, 5, 6];
-    v.sort_by_key(|&num| (num > 3, Reverse(num)));
-    println!("{:?}", v);
-
+    //let mut v = vec![1, 2, 3, 4, 5, 6];
+    //v.sort_by_key(|&num| (num > 3, Reverse(num)));
+    //println!("{:?}", v);
+    let v = [1,2,3,4];
+    assert_eq!(v.to_vec(), vec![1,2,3,4]);
+    //assert_eq!(vec![v], vec![1,2,3,4]);
 }

@@ -7,7 +7,7 @@ use std::str::FromStr;
 extern crate num_cpus;
 
 /// cargo build --release
-/// & .\target\release\mandelbrot.exe mandel.png 4000x3000 -1.08,0.28 -1.03,0.23
+/// hyperfine "& .\target\release\mandelbrot.exe mandel.png 4000x3000 -1.08,0.28 -1.03,0.23"
 ///
 /// cargo run mandel.png 1000x750 -1.08,0.28 -1.03,0.23
 ///
@@ -20,6 +20,9 @@ extern crate num_cpus;
 /// - SEKIREI   - 3.0 sec
 /// - ALEXKO-11 - 0.5 sec x6
 /// - ALEXKO-LS - 1.1 sec x2.7
+///
+/// Rayon mutithread
+/// - ALEXKO-11 -
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -35,10 +38,20 @@ fn main() {
     let mut pixels = vec![0; bounds.0 * bounds.1];
 
     // Single threaded
-    //render(&mut pixels, bounds, upper_left, lower_right);
+    //render_single_thread(&mut pixels, bounds, upper_left, lower_right);
 
-    //*
     // Multi threaded
+    render_multi_thread_crossbeam(&mut pixels, bounds, upper_left, lower_right);
+
+    write_image(&args[1], &pixels, bounds).expect("error writing output PNG file");
+}
+
+fn render_multi_thread_crossbeam(
+    pixels: &mut[u8],
+    bounds: (usize, usize),
+    upper_left: Complex<f64>,
+    lower_right: Complex<f64>
+) {
     let threads = num_cpus::get();
     println!("Threads used: {}", threads);
     let rows_in_part = bounds.1 / threads + 1;
@@ -59,9 +72,15 @@ fn main() {
 
         }).unwrap();
     }
-    //*/
+}
 
-    write_image(&args[1], &pixels, bounds).expect("error writing output PNG file");
+fn render_single_thread(
+    pixels: &mut[u8],
+    bounds: (usize, usize),
+    upper_left: Complex<f64>,
+    lower_right: Complex<f64>
+) {
+        render(pixels, bounds, upper_left, lower_right);
 }
 
 /// dimensions of pixcure are given by bounds
