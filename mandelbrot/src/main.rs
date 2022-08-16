@@ -24,6 +24,7 @@ extern crate num_cpus;
 ///
 /// Rayon mutithread
 /// - ALEXKO-11 - 0.3 sec
+/// - ALEXKO-LS - 0.7 sec
 fn main() {
     let args: Vec<String> = env::args().collect();
 
