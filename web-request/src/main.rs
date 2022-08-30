@@ -2,6 +2,28 @@ use async_std::io::prelude::*;
 use async_std::net;
 use std::io::Result;
 
+/* Example of execution:
+
+> web_request(example.com): enter
+> web_request(www.red-bean.com): enter
+> web_request(en.wikipedia.org): enter
+> web_request(example.com): connect
+> web_request(example.com): send
+> web_request(en.wikipedia.org): connect
+> web_request(en.wikipedia.org): send
+> web_request(example.com): receive
+> web_request_owning(example.com, 80, /): web_request.await
+> web_requests: handle.await
+> web_request(en.wikipedia.org): receive
+> web_request_owning(en.wikipedia.org, 80, /): web_request.await
+> web_request(www.red-bean.com): connect
+> web_request(www.red-bean.com): send
+> web_request(www.red-bean.com): receive
+> web_request_owning(www.red-bean.com, 80, /): web_request.await
+> web_requests: handle.await
+> web_requests: handle.await
+
+*/
 fn main() {
     let requests = vec![
         ("example.com".to_string(),         80,     "/".to_string()),
@@ -35,24 +57,32 @@ async fn web_requests(requests: Vec<(String, u16, String)>) -> Vec<Result<String
     let mut results = vec![];
     for handle in handles {
         results.push(handle.await);
+        eprintln!("> web_requests: handle.await")
     }
 
     results
 }
 
 async fn web_request_owning(host: String, port: u16, path: String) -> Result<String> {
-    web_request(&host, port, &path).await
+    let result = web_request(&host, port, &path).await;
+    eprintln!("> web_request_owning({}, {}, {}): web_request.await", host, port, path);
+    result
 }
 
 async fn web_request(host: &str, port: u16, path: &str) -> Result<String> {
-    let mut socket = net::TcpStream::connect((host, port)).await?;
-    let request = format!("GET {} HTTP/1.1\r\nHost: {}\r\n\r\n", path, host);
+    eprintln!("> web_request({}): enter", host);
 
+    let mut socket = net::TcpStream::connect((host, port)).await?;
+    eprintln!("> web_request({}): connect", host);
+
+    let request = format!("GET {} HTTP/1.1\r\nHost: {}\r\n\r\n", path, host);
     socket.write_all(request.as_bytes()).await?;
+    eprintln!("> web_request({}): send", host);
     socket.shutdown(net::Shutdown::Write)?;
 
     let mut response = String::new();
     socket.read_to_string(& mut response).await?;
+    eprintln!("> web_request({}): receive", host);
 
     Ok(response)
 }
