@@ -1,13 +1,50 @@
 use async_std::io::prelude::*;
 use async_std::net;
+use std::io::Result;
 
-fn main() -> std::io::Result<()> {
+fn main() {
+    let requests = vec![
+        ("example.com".to_string(),         80,     "/".to_string()),
+        ("www.red-bean.com".to_string(),    80,     "/".to_string()),
+        ("en.wikipedia.org".to_string(),    80,     "/".to_string()),
+    ];
+
+    let results = async_std::task::block_on(web_requests(requests));
+    for result in results {
+        match result {
+            Ok(response) => println!("{}", response),
+            Err(error) => eprintln!("error: {}", error),
+        }
+    }
+}
+
+/*
+fn main() -> Result<()> {
     let response = async_std::task::block_on(web_request("example.com", 80, "/"))?;
     println!("{}", response);
     Ok(())
 }
+*/
 
-async fn web_request(host: &str, port: u16, path: & str) -> std::io::Result<String> {
+async fn web_requests(requests: Vec<(String, u16, String)>) -> Vec<Result<String>> {
+    let mut handles = vec![];
+    for (host, port, path) in requests {
+        handles.push(async_std::task::spawn_local(web_request_owning(host, port, path)));
+    }
+
+    let mut results = vec![];
+    for handle in handles {
+        results.push(handle.await);
+    }
+
+    results
+}
+
+async fn web_request_owning(host: String, port: u16, path: String) -> Result<String> {
+    web_request(&host, port, &path).await
+}
+
+async fn web_request(host: &str, port: u16, path: &str) -> Result<String> {
     let mut socket = net::TcpStream::connect((host, port)).await?;
     let request = format!("GET {} HTTP/1.1\r\nHost: {}\r\n\r\n", path, host);
 
