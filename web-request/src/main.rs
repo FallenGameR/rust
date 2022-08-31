@@ -51,7 +51,11 @@ fn main() -> Result<()> {
 async fn web_requests(requests: Vec<(String, u16, String)>) -> Vec<Result<String>> {
     let mut handles = vec![];
     for (host, port, path) in requests {
-        handles.push(async_std::task::spawn_local(web_request_owning(host, port, path)));
+        // handles.push(async_std::task::spawn_local(web_request_owning(host, port, path)));
+
+        handles.push(async_std::task::spawn_local(async move {  // this block returns future
+            web_request(&host, port, &path).await               // all the used variable moved
+        }));
     }
 
     let mut results = vec![];
