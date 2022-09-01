@@ -17,8 +17,8 @@ pub enum ClientPacket {             // was:FromClient
 
 pub enum ServerPacket {             // was:FromServer, enum
     Message {                       // struct variant
-        group: Arc<String>,
-        message: Arc<String>,
+        group: Arc<String>,         // Arc allows server to reuse strings for messages and group names
+        message: Arc<String>,       // These strings are not reused for serialization/deserialization
     },
     Error(String),                  // tuple variant
 }
