@@ -9,7 +9,7 @@ pub enum ClientPacket {             // was:FromClient
     Join {
         group: Arc<String>,         // was:group
     },
-    Post {
+    Send {                          // was:Post
         group: Arc<String>,
         message: Arc<String>,
     },
@@ -26,7 +26,7 @@ pub enum ServerPacket {             // was:FromServer, enum
 #[test]
 fn test_client_packet_json_is_correct()
 {
-    let target = ClientPacket::Post {
+    let target = ClientPacket::Send {
         group: Arc::new("Cats".to_string()),
         message: Arc::new("Hello cats!".to_string()),
     };
@@ -34,7 +34,7 @@ fn test_client_packet_json_is_correct()
     let serialized = serde_json::to_string(&target).unwrap();
     let deserialized = serde_json::from_str::<ClientPacket>(&serialized).unwrap();
 
-    assert_eq!(serialized, "{\"Post\":{\"group\":\"Cats\",\"message\":\"Hello cats!\"}}");
-    assert_eq!(serialized, r#"{"Post":{"group":"Cats","message":"Hello cats!"}}"#); // raw string p74
+    assert_eq!(serialized, "{\"Send\":{\"group\":\"Cats\",\"message\":\"Hello cats!\"}}");
+    assert_eq!(serialized, r#"{"Send":{"group":"Cats","message":"Hello cats!"}}"#); // raw string p74
     assert_eq!(deserialized, target);
 }

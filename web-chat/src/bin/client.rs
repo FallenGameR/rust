@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use async_std::prelude::*;
 use async_std::{io, net};
 use web_chat::ClientPacket;
@@ -24,32 +26,69 @@ async fn send_packet(mut server: net::TcpStream) -> AppResult<()>
     Ok(())
 }
 
-
-/*
-fn parse_command(line: &str) -> Option<ClientPacket>
+fn command_to_packet(line: &str) -> Option<ClientPacket>
 {
     let (token, leftover) = get_next_token(line)?;
-    if token == "post" {
-        let (group, rest) = get_next_token(leftover)?;
-        let message = rest.trim_start().to_string();
-        return Some(FromClient::Post {
-            group_name: Arc::new(group.to_string()),
-            message: Arc::new(message),
-        });
-    } else if token == "join" {
-        let (group, rest) = get_next_token(leftover)?;
-        if !rest.trim_start().is_empty() {
+
+    match token {
+        "J" => {
+            // Join group
+            let (group, leftover) = get_next_token(leftover)?;
+            if !leftover.trim_start().is_empty() {
+                eprintln!("Error: Incorrect join command arguments. Should be 'J group_name'.");
+                return None;
+            }
+            return Some(ClientPacket::Join {
+                group: Arc::new(group.to_string()),
+            });
+        },
+        "S" => {
+            // Send message to group
+            let (group, message) = get_next_token(leftover)?;
+            return Some(ClientPacket::Send {
+                group: Arc::new(group.to_string()),
+                message: Arc::new(message.trim_start().to_string()),
+            });
+        },
+        _ => {
+            eprintln!("Error: Unrecognized command: {:?}", line);
             return None;
         }
-        return Some(FromClient::Join {
-            group_name: Arc::new(group.to_string()),
-        });
-    } else {
-        eprintln!("Unrecognized command: {:?}", line);
-        return None;
     }
 }
-*/
+
+#[test]
+fn test_command_to_packet()
+{
+    // Joins
+    let any_valid_join = command_to_packet("  J cats").unwrap();
+    assert_eq!(ClientPacket::Join { group: Arc::new("cats".to_string()) }, any_valid_join);
+
+    let any_no_group_join = command_to_packet("J ");
+    assert_eq!(None, any_no_group_join);
+
+    // Sends
+    let any_valid_send = command_to_packet("S cats hello and myau!").unwrap();
+    let any_matching_send_packet = ClientPacket::Send {
+        group: Arc::new("cats".to_string()),
+        message: Arc::new("hello and myau!".to_string()),
+    };
+    assert_eq!(any_matching_send_packet, any_valid_send);
+
+    let any_no_message_send = command_to_packet("S cats ").unwrap();
+    let any_matching_send_packet = ClientPacket::Send {
+        group: Arc::new("cats".to_string()),
+        message: Arc::new("".to_string()),
+    };
+    assert_eq!(any_matching_send_packet, any_no_message_send);
+
+    let any_no_group_send = command_to_packet("S ");
+    assert_eq!(None, any_no_group_send);
+
+    // Unknown commands
+    let any_unknown_command = command_to_packet("List database");
+    assert_eq!(None, any_unknown_command);
+}
 
 /// Return 'Some((first_word, leftover_text))' if there is
 /// at least one word in the 'text', otherwise return 'None'
