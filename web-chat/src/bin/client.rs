@@ -126,7 +126,7 @@ fn test_get_next_token_is_correct()
     assert_eq!("justLastToken", any_last_token);
     assert_eq!("", empty_text);
 
-    let any_empty_space = "   ";
+    let any_empty_space = "  ";
     let result = get_next_token(any_empty_space);
     assert_eq!(None, result);
 
