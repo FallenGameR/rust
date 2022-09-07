@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use async_std::prelude::*;
 use async_std::{io, net};
-use web_chat::ClientPacket;
+use web_chat::{ClientPacket, utils};
 use web_chat::utils::{AppResult};
 
 fn main(){
@@ -20,14 +20,23 @@ async fn send_packet(mut server: net::TcpStream) -> AppResult<()>
         - Ctrl+Z - close connection and exit the client app");
 
     let mut input = io::BufReader::new(io::stdin()).lines();
+
     while let Some(line_read) = input.next().await {
         let line = line_read?;
 
+        let packet = match command_to_packet(&line) {
+            Some(packet) => packet,
+            None => continue,
+        };
+
+        utils::send_packet(&mut server, &packet).await?;
+        server.flush().await?;
     }
 
     Ok(())
 }
 
+// was: parse_command
 fn command_to_packet(line: &str) -> Option<ClientPacket>
 {
     let (token, leftover) = get_next_token(line)?;
