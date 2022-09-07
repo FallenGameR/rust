@@ -7,16 +7,22 @@ use web_chat::utils::{AppResult};
 
 fn main() -> AppResult<()>
 {
-    let address = std::env::args().nth(1).expect("Usage: client.exe <ADDRESS>:<PORT>");
+    let address = std::env::args().nth(1).expect("Usage: client.exe <SERVER ADDRESS>:<PORT>");
 
     async_std::task::block_on(async {
         let server_stream = net::TcpStream::connect(address).await?;
         server_stream.set_nodelay(true)?;
 
-        let sent_to_server = send_packet(server_stream.clone());
-        let replied_from_server = receive_packet(server_stream);
+        // These two tasks are running in parrallel forever
+        // Messages to server can be terminated if user closes stdio via Ctrl+Z (end-of-file indicator)
+        // Messages from server can be terminated if server closes the connection.
+        let messages_to_server = send_packet(server_stream.clone());
+        let messages_from_server = receive_packet(server_stream);
 
-        replied_from_server.race(sent_to_server).await?;
+        // If we used `messages_to_server.await?; messages_from_server.await?;' that would mean
+        // that client.exe exists when both tasks are terminated. But we rather want to terminate
+        // when either of them exits. Thus we need to use `race` method.
+        messages_from_server.race(messages_to_server).await?;
         Ok(())
     })
 }
