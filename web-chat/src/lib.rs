@@ -15,6 +15,7 @@ pub enum ClientPacket {             // was:FromClient
     },
 }
 
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub enum ServerPacket {             // was:FromServer, enum
     Message {                       // struct variant
         group: Arc<String>,         // Arc allows server to reuse strings for messages and group names

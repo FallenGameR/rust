@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use async_std::prelude::*;
 use async_std::{io, net};
-use web_chat::{ClientPacket, utils};
+use web_chat::{ClientPacket, ServerPacket, utils};
 use web_chat::utils::{AppResult};
 
 fn main(){
@@ -31,6 +31,26 @@ async fn send_packet(mut server: net::TcpStream) -> AppResult<()>
 
         utils::send_packet(&mut server, &packet).await?;
         server.flush().await?;
+    }
+
+    Ok(())
+}
+
+// was: handle_replies
+async fn receive_packet(server: net::TcpStream) -> AppResult<()>
+{
+    let reader = io::BufReader::new(server);
+    let mut stream = utils::receive_packet(reader);
+
+    while let Some(packet) = stream.next().await {
+        match packet? {
+            ServerPacket::Message{ group, message } => {
+                println!("{}: {}", group, message);
+            }
+            ServerPacket::Error(message) => {
+                eprintln!("error: server replied with error message: {}", message)
+            }
+        }
     }
 
     Ok(())
