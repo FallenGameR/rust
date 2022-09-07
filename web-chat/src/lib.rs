@@ -24,7 +24,7 @@ pub enum ServerPacket {             // was:FromServer, enum
 }
 
 #[test]
-fn test_client_packet_json_is_correct()
+fn test_client_packet_json()
 {
     let target = ClientPacket::Send {
         group: Arc::new("Cats".to_string()),

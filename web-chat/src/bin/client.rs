@@ -9,6 +9,8 @@ fn main(){
 }
 
 // was send_commands
+// to test this we'll need to depend on trait instead
+// and test would pass in mock struct that implements the same trait
 async fn send_packet(mut server: net::TcpStream) -> AppResult<()>
 {
     println!(
@@ -108,7 +110,7 @@ fn get_next_token(mut text: &str) -> Option<(&str, &str)>
 }
 
 #[test]
-fn test_get_next_token_is_correct()
+fn test_get_next_token()
 {
     let (any_token, any_text_sans_token) = get_next_token("someToken next text here").unwrap();
     assert_eq!("someToken", any_token);

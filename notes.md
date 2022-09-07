@@ -10,6 +10,7 @@ rustup update
 # URLs
 [Crates available](https://crates.io/)
 [Performance improvements](https://endler.dev/2020/rust-compile-times/)
+[Web API testing sample](https://blog.logrocket.com/end-to-end-testing-for-rust-web-services/)
 
 
 # Performance measurement
