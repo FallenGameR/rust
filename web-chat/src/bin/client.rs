@@ -5,7 +5,20 @@ use async_std::{io, net};
 use web_chat::{ClientPacket, ServerPacket, utils};
 use web_chat::utils::{AppResult};
 
-fn main(){
+fn main() -> AppResult<()>
+{
+    let address = std::env::args().nth(1).expect("Usage: client.exe <ADDRESS>:<PORT>");
+
+    async_std::task::block_on(async {
+        let server_stream = net::TcpStream::connect(address).await?;
+        server_stream.set_nodelay(true)?;
+
+        let sent_to_server = send_packet(server_stream.clone());
+        let replied_from_server = receive_packet(server_stream);
+
+        replied_from_server.race(sent_to_server).await?;
+        Ok(())
+    })
 }
 
 // was send_commands

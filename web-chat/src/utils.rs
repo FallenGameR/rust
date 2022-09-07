@@ -1,4 +1,4 @@
-use async_std::{io::{WriteExt, prelude::BufReadExt}, stream::{Stream, StreamExt}};
+use async_std::{io::{WriteExt, prelude::BufReadExt}, stream::StreamExt};
 
 
 // In real apps use anyhow crate for generic thread-safe errors
