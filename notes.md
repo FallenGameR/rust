@@ -1,42 +1,28 @@
 # Commands
+```
 cargo new <crate name> - creates git as well
 cargo test
 cargo run <arguments>
 rustup doc --std
 rustup update
+```
 
 # URLs
-crates.io
+[Crates available](https://crates.io/)
+[Performance improvements](https://endler.dev/2020/rust-compile-times/)
 
 
-# Hyperfine
+# Performance measurement
+Turns out that warnings disabling `$env:RUSTFLAGS = "-Awarnings"` causes unnecessary rebuilds. Leaving the warnings be makes tests go fast.
 
-
- ## Not cached
-
-
- ## Cached
-
-   - 236.8 ms
-       - 209.7 ms
-
-
-
-
---prepare
-
-
-
-
+In case performance measurements are needed here is how to compare options:
 
 ```powershell
-
-hyperfine `
-    --warmup 1 `
-    --shell "pwsh.exe -noprofile" `
-    --prepare "Add-Content -Path .\src\bin\client.rs -Value ' '" `
-    --export-markdown "test_performance.md" `
-    -n "Build-in" "cargo test -q" `
-    -n "NextTest" "cargo nextest run"
-
+    hyperfine `
+        --warmup 1 `
+        --shell "pwsh.exe -noprofile" `
+        --prepare "Add-Content -Path .\src\bin\client.rs -Value ' '" `
+        --export-markdown "test_performance.md" `
+        -n "Build-in" "cargo test -q" `
+        -n "NextTest" "cargo nextest run"
 ```
