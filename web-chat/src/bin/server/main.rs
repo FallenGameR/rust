@@ -1,5 +1,12 @@
+use std::sync::Arc;
 use async_std::{stream::StreamExt, task};
 use web_chat::utils::AppResult;
+
+mod connection;
+mod groups;
+mod group;
+
+use crate::groups::Groups;
 
 fn main() -> AppResult<()>
 {
@@ -11,9 +18,9 @@ fn main() -> AppResult<()>
         let listner = async_std::net::TcpListener::bind(server_address).await?;
         let mut connections = listner.incoming();
 
-        while let Some(socket_result) = connections.next().await {
-            let socket = socket_result?;
-            //let groups =
+        while let Some(tcp_stream_result) = connections.next().await {
+            let tcp_stream = tcp_stream_result?;
+            let groups = Arc::new(Groups::new());
             task::spawn(async {
                 //log_error
             });
