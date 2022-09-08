@@ -5,34 +5,45 @@ use async_std::{
     task,
     net::{
         TcpStream,
-        TcpListener
+        TcpListener,
     },
     io::{
         BufReader,
-        WriteExt
+        WriteExt,
     }
 };
-use web_chat::{utils::{AppResult, self}, ClientPacket, ServerPacket};
+use web_chat::{
+    utils::{
+        self,
+        AppResult,
+    },
+    ClientPacket,
+    ServerPacket
+};
+
+// this is not web_chat crate but rather bin/server crate inside web_chat
+use crate::groups::Groups;
 
 mod groups;
 
-use crate::groups::Groups;
-
-
 fn main() -> AppResult<()>
 {
-    let server_address  = std::env::args().nth(1).expect("Usage: server <SERVER ADDRESS>:<PORT>");
+    // Shared across the server app
     let groups = Arc::new(Groups::new());
 
     async_std::task::block_on(async {
-        let listner = TcpListener::bind(server_address).await?;
-        let mut connections = listner.incoming();
+        // was: places outside of async block
+        let server_address = std::env::args().nth(1).expect("Usage: server <SERVER ADDRESS>:<PORT>");
 
-        while let Some(tcp_stream_result) = connections.next().await {
+        // this is really a tcp socket server and original code calls it socket
+        let listner = TcpListener::bind(server_address).await?;
+
+        while let Some(tcp_stream_result) = listner.incoming().next().await {
             let tcp_stream = tcp_stream_result?;
-            let groups_for_task = groups.clone();
+
+            // async task that is spawn for each connection
             task::spawn(async {
-                let server_termination_reason = process_packets(tcp_stream, groups_for_task).await;
+                let server_termination_reason = process_packets(tcp_stream, groups.clone()).await;
                 if let Err(message) = server_termination_reason {
                     eprintln!("error: {}", message);
                 }
@@ -46,6 +57,7 @@ fn main() -> AppResult<()>
     })
 }
 
+// was: serve
 async fn process_packets(stream: TcpStream, groups: Arc<Groups>) -> AppResult<()>
 {
     let server_reply_stream = Arc::new(Outbound::new(stream.clone()));
