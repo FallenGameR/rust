@@ -1,10 +1,11 @@
 use std::sync::Arc;
-use async_std::{stream::StreamExt, task};
+use async_std::{stream::StreamExt, sync::Mutex, task, net::{TcpStream, TcpListener}};
 use web_chat::utils::AppResult;
 
 mod groups;
 
 use crate::groups::Groups;
+
 
 fn main() -> AppResult<()>
 {
@@ -12,7 +13,7 @@ fn main() -> AppResult<()>
     let groups = Arc::new(Groups::new());
 
     async_std::task::block_on(async {
-        let listner = async_std::net::TcpListener::bind(server_address).await?;
+        let listner = TcpListener::bind(server_address).await?;
         let mut connections = listner.incoming();
 
         while let Some(tcp_stream_result) = connections.next().await {
@@ -27,8 +28,26 @@ fn main() -> AppResult<()>
     })
 }
 
+async fn serve(stream: TcpStream, groups: Arc<Groups>) -> AppResult<()>
+{
+    let outbound = Arc::new(Outbound::new(stream.clone()));
+
+
+    Ok(())
+}
+
 fn log_error(result: AppResult<()>) {
     if let Err(error) = result {
         eprintln!("error: {}", error);
+    }
+}
+
+pub struct Outbound(Mutex<TcpStream>);
+
+impl Outbound
+{
+    fn new(clone: TcpStream) -> _
+    {
+        todo!()
     }
 }
