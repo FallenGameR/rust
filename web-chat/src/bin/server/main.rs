@@ -1,6 +1,6 @@
 use std::sync::Arc;
-use async_std::{stream::StreamExt, sync::Mutex, task, net::{TcpStream, TcpListener}};
-use web_chat::utils::AppResult;
+use async_std::{stream::StreamExt, sync::Mutex, task, net::{TcpStream, TcpListener}, io::BufReader};
+use web_chat::{utils::{AppResult, self}, ClientPacket, ServerPacket};
 
 mod groups;
 
@@ -20,7 +20,13 @@ fn main() -> AppResult<()>
             let tcp_stream = tcp_stream_result?;
             let groups_for_task = groups.clone();
             task::spawn(async {
-                //log_error p577
+                let server_termination_reason = process_packets(tcp_stream, groups_for_task).await;
+                if let Err(message) = server_termination_reason {
+                    eprintln!("error: {}", message);
+                }
+                else {
+                    eprintln!("closed: connection was closed");
+                }
             });
         }
 
@@ -28,26 +34,51 @@ fn main() -> AppResult<()>
     })
 }
 
-async fn serve(stream: TcpStream, groups: Arc<Groups>) -> AppResult<()>
+async fn process_packets(stream: TcpStream, groups: Arc<Groups>) -> AppResult<()>
 {
-    let outbound = Arc::new(Outbound::new(stream.clone()));
+    let server_reply_stream = Arc::new(Outbound::new(stream.clone()));
+    let client_read_stream = BufReader::new(stream);
+    let mut client_read_packets_stream = utils::receive_packet(client_read_stream);
 
+    while let Some(client_read_packet_result) = client_read_packets_stream.next().await  {
+        let client_packet_processing_result = match client_read_packet_result? {
+            ClientPacket::Join { group } => {
+                let used_group = groups.get_or_create(group);
+                used_group.join(server_reply_stream.clone());   // reply stream is needed in post
+                Ok(())
+            }
+            ClientPacket::Send { group, message } => {
+                match groups.get(&group) {
+                    Some(used_group) => {
+                        used_group.post(message);               // would use preserved stream
+                        Ok(())
+                    }
+                    None => {
+                        Err(format!(
+                            "Can't send message '{}' to the group '{}' \
+                            because the group does not exist",
+                            message, group))
+                    }
+
+                }
+            }
+        };
+
+        if let Err(message) = client_packet_processing_result {
+            let error_reply = ServerPacket::Error(message);
+            server_reply_stream.send(error_reply).await?;
+        }
+    }
 
     Ok(())
-}
-
-fn log_error(result: AppResult<()>) {
-    if let Err(error) = result {
-        eprintln!("error: {}", error);
-    }
 }
 
 pub struct Outbound(Mutex<TcpStream>);
 
 impl Outbound
 {
-    fn new(clone: TcpStream) -> _
+    fn new(stream: TcpStream) -> Outbound
     {
-        todo!()
+        Outbound(Mutex::new(stream))
     }
 }
