@@ -1,5 +1,17 @@
 use std::sync::Arc;
-use async_std::{stream::StreamExt, sync::Mutex, task, net::{TcpStream, TcpListener}, io::BufReader};
+use async_std::{
+    stream::StreamExt,
+    sync::Mutex,
+    task,
+    net::{
+        TcpStream,
+        TcpListener
+    },
+    io::{
+        BufReader,
+        WriteExt
+    }
+};
 use web_chat::{utils::{AppResult, self}, ClientPacket, ServerPacket};
 
 mod groups;
@@ -73,6 +85,9 @@ async fn process_packets(stream: TcpStream, groups: Arc<Groups>) -> AppResult<()
     Ok(())
 }
 
+// Same TcpStream can be used by the server
+// to reply simualtaneously to multiple clients.
+// Thus a mutex guard is needed to prevent races.
 pub struct Outbound(Mutex<TcpStream>);
 
 impl Outbound
@@ -80,5 +95,13 @@ impl Outbound
     fn new(stream: TcpStream) -> Outbound
     {
         Outbound(Mutex::new(stream))
+    }
+
+    async fn send(&self, packet: ServerPacket) -> AppResult<()>
+    {
+        let mut guarded_stream = self.0.lock().await;
+        utils::send_packet(&mut *guarded_stream, &packet).await?;
+        guarded_stream.flush().await?;
+        Ok(())
     }
 }
