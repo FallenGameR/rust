@@ -2,9 +2,7 @@ use std::sync::Arc;
 use async_std::{stream::StreamExt, task};
 use web_chat::utils::AppResult;
 
-mod connection;
 mod groups;
-mod group;
 
 use crate::groups::Groups;
 

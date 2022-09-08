@@ -1,4 +1,4 @@
-use surf::http::response;
+//use surf::http::response;
 
 fn main() {
     let urls = &[
