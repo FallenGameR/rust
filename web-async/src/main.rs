@@ -67,11 +67,13 @@ async fn web_requests(requests: Vec<(String, u16, String)>) -> Vec<Result<String
     results
 }
 
+/*
 async fn web_request_owning(host: String, port: u16, path: String) -> Result<String> {
     let result = web_request(&host, port, &path).await;
     eprintln!("> web_request_owning({}): web_request.await", host);
     result
 }
+*/
 
 async fn web_request(host: &str, port: u16, path: &str) -> Result<String> {
     eprintln!("> web_request({}): just entered", host);

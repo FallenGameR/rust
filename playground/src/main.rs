@@ -1,8 +1,10 @@
+/*
 use std::cmp::{Ordering, Reverse};
 
 struct Poly<const N: usize> {
     coef: [f64; N]
 }
+*/
 
 fn main() {
     print!("Hello, world!");

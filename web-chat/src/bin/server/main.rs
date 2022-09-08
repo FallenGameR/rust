@@ -11,8 +11,7 @@ use crate::groups::Groups;
 fn main() -> AppResult<()>
 {
     let server_address  = std::env::args().nth(1).expect("Usage: server <SERVER ADDRESS>:<PORT>");
-
-    //let
+    let groups = Arc::new(Groups::new());
 
     async_std::task::block_on(async {
         let listner = async_std::net::TcpListener::bind(server_address).await?;
@@ -20,9 +19,9 @@ fn main() -> AppResult<()>
 
         while let Some(tcp_stream_result) = connections.next().await {
             let tcp_stream = tcp_stream_result?;
-            let groups = Arc::new(Groups::new());
+            let groups_for_task = groups.clone();
             task::spawn(async {
-                //log_error
+                //log_error p577
             });
         }
 
