@@ -62,7 +62,11 @@ fn main() -> AppResult<()>
 // was: serve
 async fn process_packets(stream: TcpStream, groups: Arc<Groups>) -> AppResult<()>
 {
+    // All replies to that connected to the servier client
+    // go through that guarded reply stream
     let server_reply_stream = Arc::new(Outbound::new(stream.clone()));
+
+    // reads from the client stream are all handled within this function
     let client_read_stream = BufReader::new(stream);
     let mut client_read_packets_stream = utils::receive_packet(client_read_stream);
 
@@ -110,12 +114,26 @@ impl Outbound
 {
     fn new(stream: TcpStream) -> Outbound
     {
+        // async_std's Mutex (it is not from std) is used since we are working with async functions:
+        // 1) it would work if the same task tries to re-lock it again
+        // 2) it uses future to yield the thread if mutex was alteady taken by
+        // somebody else if nobody took the mutex there is no thread yield
+        // 3) async mutex can be released by a different thread, not the one
+        // that locked it, that is common in async functions
         Outbound(Mutex::new(stream))
     }
 
     async fn send(&self, packet: ServerPacket) -> AppResult<()>
     {
         let mut guarded_stream = self.0.lock().await;
+
+        // This &mut * syntax is mitigation to the fact that Rust
+        // doesn't do deref coercions to satisfy trait bounds.
+        //
+        // So we explicitly dereferencing the mutex quard and then
+        // borrow a mutable reference to the protected TCP stream.
+        //
+        // Dereference has the highest precedence
         utils::send_packet(&mut *guarded_stream, &packet).await?;
         guarded_stream.flush().await?;
         Ok(())

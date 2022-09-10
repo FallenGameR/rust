@@ -6,6 +6,16 @@ pub struct Group {
     sender: Sender<Arc<String>>
 }
 
+impl Group
+{
+    pub fn new(name: Arc<String>) -> Group
+    {
+        Group { name: Arc::new("String".to_string()), sender: Sender{ shared: (Arc::new("data".to_string())) } }
+    }
+}
+
+// Std mutex is used here. In case there is no need
+// to await anything it is faster compared to async Mutex
 pub struct Groups(Mutex<HashMap<Arc<String>, Arc<Group>>>);
 
 impl Groups
@@ -13,5 +23,24 @@ impl Groups
     pub fn new() -> Groups
     {
         Groups(Mutex::new(HashMap::new()))
+    }
+
+    pub fn get(&self, name: &String) -> Option<Arc<Group>>
+    {
+        self.0
+            .lock()
+            .unwrap()
+            .get(name)
+            .cloned() // Cloned returns an option instead of just doing Clone
+    }
+
+    pub fn get_or_create(&self, name: Arc<String>) -> Arc<Group>
+    {
+        self.0
+            .lock()
+            .unwrap()
+            .entry(name.clone())
+            .or_insert_with(|| Arc::new(Group::new(name)))
+            .clone() // Clone just increments reference count
     }
 }

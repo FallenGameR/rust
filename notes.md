@@ -4,13 +4,20 @@ cargo new <crate name> - creates git as well
 cargo test
 cargo run <arguments>
 rustup doc --std
+rustup docs --book
 rustup update
 ```
 
+
+# Crates
+- some error-related craits
+- dashmap
+
+
 # URLs
-[Crates available](https://crates.io/)
-[Performance improvements](https://endler.dev/2020/rust-compile-times/)
-[Web API testing sample](https://blog.logrocket.com/end-to-end-testing-for-rust-web-services/)
+- [Crates available](https://crates.io/)
+- [Performance improvements](https://endler.dev/2020/rust-compile-times/)
+- [Web API testing sample](https://blog.logrocket.com/end-to-end-testing-for-rust-web-services/)
 
 
 # Performance measurement
