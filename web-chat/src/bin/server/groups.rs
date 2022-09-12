@@ -24,6 +24,7 @@ impl Group
     pub fn join(&self, outbound: Arc<Outbound>)
     {
         // Who is monitoring the tasks that we create here?
+        // Looks like the vars are moved here and when the tasks exists all the cleanup is done automatically
         let receiver = self.sender.subscribe();
         task::spawn(handle_subscriber(self.name.clone(), receiver, outbound));
     }
@@ -31,11 +32,10 @@ impl Group
     pub fn post(&self, message: Arc<String>)
     {
         // Ignoring error here for unclear reasons.
-        // If there are no subscribers this call will return error.
-        // In this case Outbound TCP stream can be terminated.
+        // If there are no subscribers (all tasks did exit) this call will return error.
+        // But if there are no subscribers the counter on Outbound is zero and it is cleaned up automatically.
         let _ = self.sender.send(message);
     }
-
 }
 
 async fn handle_subscriber(group: Arc<String>, mut receiver: Receiver<Arc<String>>, outbound: Arc<Outbound>)
