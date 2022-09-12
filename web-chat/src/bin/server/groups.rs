@@ -1,5 +1,8 @@
+use async_std::task;
 use std::{collections::HashMap, sync::{Arc, Mutex}};
-use tokio::sync::broadcast::{self, Sender};
+use tokio::sync::broadcast::{self, Sender, Receiver};
+
+use crate::Outbound;
 
 pub struct Group {
     name: Arc<String>,
@@ -15,6 +18,26 @@ impl Group
         let (sender, _) = broadcast::channel(MESSAGE_QUEUE_CAPACITY);
         Group { name, sender }
     }
+
+    pub fn join(&self, outbound: Arc<Outbound>)
+    {
+        let receiver = self.sender.subscribe();
+        task::spawn(handle_subscriber(self.name.clone(), receiver, outbound));
+    }
+
+    pub fn post(&self, message: Arc<String>)
+    {
+        // Ignoring error here for unclear reasons.
+        // If there are no subscribers this call will return error.
+        // In this case Outbound TCP stream can be terminated.
+        let _ = self.sender.send(message);
+    }
+
+}
+
+async fn handle_subscriber(group: Arc<String>, mut receiver: Receiver<Arc<String>>, outbound: Arc<Outbound>)
+{
+
 }
 
 // Std mutex is used here. In case there is no need
