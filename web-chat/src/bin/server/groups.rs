@@ -1,16 +1,19 @@
 use std::{collections::HashMap, sync::{Arc, Mutex}};
-use tokio::sync::broadcast::Sender;
+use tokio::sync::broadcast::{self, Sender};
 
 pub struct Group {
     name: Arc<String>,
     sender: Sender<Arc<String>>
 }
 
+const MESSAGE_QUEUE_CAPACITY: usize = 1000;
+
 impl Group
 {
     pub fn new(name: Arc<String>) -> Group
     {
-        Group { name: Arc::new("String".to_string()), sender: Sender{ shared: (Arc::new("data".to_string())) } }
+        let (sender, _) = broadcast::channel(MESSAGE_QUEUE_CAPACITY);
+        Group { name, sender }
     }
 }
 
