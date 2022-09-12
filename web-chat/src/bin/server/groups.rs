@@ -1,10 +1,12 @@
 use async_std::task;
+use web_chat::ServerPacket;
 use std::{collections::HashMap, sync::{Arc, Mutex}};
-use tokio::sync::broadcast::{self, Sender, Receiver};
+use tokio::sync::broadcast::{self, Sender, Receiver, error::RecvError};
 
 use crate::Outbound;
 
-pub struct Group {
+pub struct Group
+{
     name: Arc<String>,
     sender: Sender<Arc<String>>
 }
@@ -21,6 +23,7 @@ impl Group
 
     pub fn join(&self, outbound: Arc<Outbound>)
     {
+        // Who is monitoring the tasks that we create here?
         let receiver = self.sender.subscribe();
         task::spawn(handle_subscriber(self.name.clone(), receiver, outbound));
     }
@@ -37,7 +40,18 @@ impl Group
 
 async fn handle_subscriber(group: Arc<String>, mut receiver: Receiver<Arc<String>>, outbound: Arc<Outbound>)
 {
+    loop {
+        let packet = match receiver.recv().await {
+            Ok(message) => ServerPacket::Message { group: group.clone(), message: message.clone() },
+            Err(RecvError::Lagged(n)) => ServerPacket::Error(format!("Dropped {} messages from {}", n, group)),
+            Err(RecvError::Closed) => break,
+        };
 
+        let reply_result = outbound.send(packet).await;
+        if reply_result.is_err() {
+            break;
+        }
+    }
 }
 
 // Std mutex is used here. In case there is no need
