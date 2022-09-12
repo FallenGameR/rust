@@ -40,12 +40,13 @@ fn main() -> AppResult<()>
 
         while let Some(tcp_stream_result) = listner.incoming().next().await {
             let tcp_stream = tcp_stream_result?;
+            let groups_copy = groups.clone();
 
             // async task that is spawn for each connection
             // the tcp_streams would be shared via the groups that would remember
             // what connection to use for replies
             task::spawn(async {
-                let server_termination_reason = process_packets(tcp_stream, groups.clone()).await;
+                let server_termination_reason = process_packets(tcp_stream, groups_copy).await;
                 if let Err(message) = server_termination_reason {
                     eprintln!("error: {}", message);
                 }
