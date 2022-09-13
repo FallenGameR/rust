@@ -27,5 +27,7 @@ fn main() {
     //println!("{:?}", v);
     let v = [1,2,3,4];
     assert_eq!(v.to_vec(), vec![1,2,3,4]);
+    file!();
+    line!();
     //assert_eq!(vec![v], vec![1,2,3,4]);
 }
