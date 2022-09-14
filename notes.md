@@ -6,6 +6,7 @@ cargo run <arguments>
 rustup doc --std
 rustup docs --book
 rustup update
+rustup override set stable|nightly
 ```
 
 

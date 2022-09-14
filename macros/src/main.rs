@@ -1,3 +1,8 @@
+#![feature(log_syntax)]
+#![feature(trace_macros)]
+// rustup override set nightly
+// rustup override set stable
+
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
@@ -9,6 +14,14 @@ enum Json
     String(String),
     Array(Vec<Json>),
     Object(Box<HashMap<String, Json>>),
+}
+
+impl From<bool> for Json
+{
+    fn from(item: bool) -> Json
+    {
+        Json::Boolean(item)
+    }
 }
 
 /// Construct Json representation for any Rust number type
@@ -47,9 +60,31 @@ macro_rules! json
     };
 }
 
+/// To debug use unstable rust toolchain.
+/// 1) Expand macro (needs buildable code):
+/// cargo build --verbose, take rustc call, add -Z unstable-options --pretty
+/// 2) Log macro arguments: log_syntax!()
+/// 3) Log all macro calls: trace_macros!(true); ... trace_macros!(false);
 fn main() {
     todo!("Add macro debugging info ");
     println!("Hello, world!");
+}
+
+#[test]
+fn json_object_works()
+{
+    let json_macro = json!([
+        {
+            "name": "Alex",
+            "class_of": 2002,
+            "major": "IU7",
+        },
+        {
+            "name": "Ivan",
+            "class_of": 2022,
+            "major": "Knots"
+        }
+    ]);
 }
 
 #[test]
