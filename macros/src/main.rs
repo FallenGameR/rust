@@ -75,7 +75,7 @@ fn json_object_works()
 {
     let json_macro = json!([
         {
-            "name": "Alex",
+            "name": "Alex", // why rule on line 53 is not working?
             "class_of": 2002,
             "major": "IU7",
         },
