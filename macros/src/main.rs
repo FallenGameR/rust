@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+#[derive(Debug, PartialEq)]
 enum Json
 {
     Null,
@@ -24,7 +25,7 @@ macro_rules! impl_from_num_to_json
     )* }
 }
 
-impl_from_num_to_json!(i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize);
+impl_from_num_to_json!(i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f64);
 
 /// Construct JSON via macro
 /// tt is token tree
@@ -49,4 +50,23 @@ macro_rules! json
 fn main() {
     todo!("Add macro debugging info ");
     println!("Hello, world!");
+}
+
+#[test]
+fn json_array_works()
+{
+    let json_macro = json!(
+        [
+            {
+                "pitch": 440.0
+            }
+        ]
+    );
+    let json_coded = Json::Array(vec![  // vec! is Array here
+        Json::Object(Box::new(vec![     // vec! is HashMap here
+            ("pitch".to_string(), Json::Number(440.0))
+        ].into_iter().collect()))
+    ]);
+
+    assert_eq!(json_macro, json_coded);
 }
