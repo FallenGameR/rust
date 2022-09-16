@@ -63,9 +63,13 @@ macro_rules! json
         Json::Array(vec![ $( json!($element) ),* ])
     };
     ( {$($key:tt : $value:tt),*} ) => {
-        Json::Object(Box::new(vec![
-            $( ($key.to_string(), json!($value)) ),*
-        ].into_iter().collect()))
+        {
+            let mut fields = Box::new(HashMap::new());
+            $(
+                fields.insert($key.to_string(), json!($value));
+            )*
+            Json::Object(fields)
+        }
     };
     ( $other:tt ) => {
         Json::from($other)
@@ -85,23 +89,6 @@ fn main() {
 // is there working book code sample?
 // how the same macro is defined in serde?
 
-
-#[test]
-fn json_object_works()
-{
-    let json_macro = json!([
-        {
-            "name": "Alex", // why rule on line 53 is not working?
-            "class_of": 2002,
-            "major": "IU7",
-        },
-        {
-            "name": "Ivan",
-            "class_of": 2022,
-            "major": "Knots"
-        }
-    ]);
-}
 
 #[test]
 fn json_array_works()
@@ -179,6 +166,25 @@ fn original_example() {
 
     assert_eq!(macro_generated_value, hand_coded_value);
 }
+
+/*
+#[test]
+fn json_object_works()
+{
+    let json_macro = json!([
+        {
+            "name": "Alex", // why rule on line 53 is not working?
+            "class_of": 2002,
+            "major": "IU7",
+        },
+        {
+            "name": "Ivan",
+            "class_of": 2022,
+            "major": "Knots"
+        }
+    ]);
+}
+*/
 
 #[test]
 fn json_array_with_json_element() {
