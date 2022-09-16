@@ -8,12 +8,12 @@ use std::collections::HashMap;
 #[derive(Debug, PartialEq)] // Clone
 enum Json
 {
-    Null,
+    Null,                                   // Validly considered as not used code
     Boolean(bool),
     Number(f64),
     String(String),
-    Array(Vec<Json>),
-    Object(Box<HashMap<String, Json>>),
+    Array(Vec<Json>),                       // For some reason rust-analyzer doesn't
+    Object(Box<HashMap<String, Json>>),     // understand that this code is actually used
 }
 
 impl From<bool> for Json
@@ -54,6 +54,8 @@ impl_from_num_to_json!(i8 u8 i16 u16 i32 u32 i64 u64 i128 u128 isize usize f32 f
 
 /// Construct JSON via macro
 /// tt is token tree
+/// Without macro export Rust treats macro as unused for some reason
+#[macro_export]
 macro_rules! json
 {
     (null) => {
@@ -62,7 +64,7 @@ macro_rules! json
     ( [$($element:tt),*] ) => {
         Json::Array(vec![ $( json!($element) ),* ])
     };
-    ( {$($key:tt : $value:tt),*} ) => {
+    ( {$($key:tt : $value:tt),*}) => {
         {
             let mut fields = Box::new(HashMap::new());
             $(
@@ -85,11 +87,6 @@ fn main() {
     println!("Hello, world!");
 }
 
-
-// is there working book code sample?
-// how the same macro is defined in serde?
-
-
 #[test]
 fn json_array_works()
 {
@@ -101,12 +98,13 @@ fn json_array_works()
         ]
     );
 
-    let json_coded = Json::Array(vec![  // vec! is Array here
-        Json::Object(Box::new(vec![     // vec! is HashMap here?
+    let json_coded = Json::Array(vec![  // vec! is Vec here
+        Json::Object(Box::new(vec![     // vec! is Vec here
             ("pitch".to_string(), Json::Number(440.0))
         ].into_iter().collect()))
     ]);
 
+    // But Vec equals HashMap equal in asserts eyes since they store the same tuple
     assert_eq!(json_macro, json_coded);
 }
 
@@ -167,24 +165,37 @@ fn original_example() {
     assert_eq!(macro_generated_value, hand_coded_value);
 }
 
-/*
 #[test]
 fn json_object_works()
 {
-    let json_macro = json!([
+    let students1 = json!([
         {
-            "name": "Alex", // why rule on line 53 is not working?
+            "name": "Jim Blandy",
+            "class_of": 1926,
+            "major": "Tibetan throat singing"
+        },
+        {
+            "name": "Jason Orendorff",
+            "class_of": 1702,
+            "major": "Knots"
+        }
+    ]);
+
+    let students2 = json!([
+        {
+            "name": "Alex",
             "class_of": 2002,
-            "major": "IU7",
+            "major": "IU7"  // , this comma breaks parsing of JSON object =)
         },
         {
             "name": "Ivan",
             "class_of": 2022,
             "major": "Knots"
-        }
+        }                   // , this comma breaks parsing of JSON array =)
     ]);
+
+    assert_ne!(students1, students2)
 }
-*/
 
 #[test]
 fn json_array_with_json_element() {
