@@ -1,18 +1,23 @@
 # Commands
-```
+```ps1
 cargo new <crate name> - creates git as well
 cargo test
 cargo run <arguments>
 rustup doc --std
 rustup docs --book
+rustup docs --cargo # Build Scripts
 rustup update
 rustup override set stable|nightly
 ```
 
 
 # Crates
-- some error-related craits
-- dashmap
+```ps1
+- some error-related craits # makes error handling easier
+- dashmap # high performance multithreaded hashmap
+- bindgen # automates bindings to C libs
+- encoding # work with different encodings
+```
 
 
 # URLs
