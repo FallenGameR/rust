@@ -17,6 +17,9 @@ rustup override set stable|nightly
 - dashmap # high performance multithreaded hashmap
 - bindgen # automates bindings to C libs
 - encoding # work with different encodings
+- messagepack # like protobuf but without schema
+- websocket protocol # like http2 but faster and binary
+- hdrhistogram # for ping times study or for temperatures study on Arduino
 ```
 
 
