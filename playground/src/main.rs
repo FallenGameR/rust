@@ -7,7 +7,8 @@ struct Poly<const N: usize> {
 */
 
 fn main() {
-    print!("Hello, world!");
+    let current_folder = std::env::current_dir().unwrap();
+    print!("Hello, world! Current folder is: {}", current_folder.display());
     //println!("Is it zero? {}", 1. / f64::INFINITY);
     //std::f64::consts::PI
     //std::f32::consts::PI
@@ -25,9 +26,9 @@ fn main() {
     //let mut v = vec![1, 2, 3, 4, 5, 6];
     //v.sort_by_key(|&num| (num > 3, Reverse(num)));
     //println!("{:?}", v);
-    let v = [1,2,3,4];
-    assert_eq!(v.to_vec(), vec![1,2,3,4]);
-    file!();
-    line!();
+    //let v = [1,2,3,4];
+    //assert_eq!(v.to_vec(), vec![1,2,3,4]);
+    //file!();
+    //line!();
     //assert_eq!(vec![v], vec![1,2,3,4]);
 }
