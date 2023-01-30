@@ -23,6 +23,7 @@ extern crate num_cpus;
 /// - ALEXKO-LS - 1.1 sec x2.7
 ///
 /// Rayon mutithread
+/// - SEKIREI   - 1.9 sec
 /// - ALEXKO-11 - 0.3 sec
 /// - ALEXKO-LS - 0.7 sec
 fn main() {
