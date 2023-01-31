@@ -5,6 +5,8 @@ use lol_html::{element, HtmlRewriter, Settings, OutputSink};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let input = include_str!("input.html");
+    println!("\n## input\n\n{input}");
+
     let mut output = vec![];
     let mut rewriter = HtmlRewriter::try_new(
         Settings {
@@ -17,17 +19,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         |c: &[u8]| output.extend_from_slice(c),
     )?;
     process(input, &mut rewriter)?;
-
-    println!("input: {input}");
-    println!("output: {}", std::str::from_utf8(&output).unwrap());
+    println!("\n## output\n\n{}", std::str::from_utf8(&output).unwrap());
 
     let input = std::str::from_utf8(&output[..])?;
     let mut output = vec![];
     let mut escaper = Escaper{ output: &mut output };
     process(input, &mut escaper)?;
-
-    println!("input: {input}");
-    println!("output: {}", std::str::from_utf8(&output).unwrap());
+    println!("\n## output\n\n{}", std::str::from_utf8(&output).unwrap());
 
     Ok(())
 }
