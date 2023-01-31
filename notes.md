@@ -51,3 +51,12 @@ In case performance measurements are needed here is how to compare options:
         -n "Build-in" "cargo test -q" `
         -n "NextTest" "cargo nextest run"
 ```
+
+## rust-analyzer
+
+- rust-analyzer: Expand macro recursively - expand macro
+- Alt+Shift+(Left|Right) - semantic block selection
+- Ctrl+Shift+O - symbol or section search
+- "Result {result} is {2 + 2}".(format|panic|println|log...) - expands string to formatted output statement
+- highlight related - cursor on something highlights all related control statements
+- rust-analyzer: Join lines - collapse array definitions in a smart way
