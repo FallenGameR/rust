@@ -1,10 +1,10 @@
-use image::ColorType;
 use image::png::PNGEncoder;
+use image::ColorType;
 use num::Complex;
+use rayon::prelude::*;
 use std::env;
 use std::fs::File;
 use std::str::FromStr;
-use rayon::prelude::*;
 extern crate num_cpus;
 
 /// cargo build --release
@@ -30,7 +30,10 @@ fn main() {
 
     if args.len() != 5 {
         eprintln!("Usage: {} <file.png> <width>x<height> <upper_left_coordinate> <lower_right_coordinate>", args[0]);
-        eprintln!("Example: {} mandel.png 4000x3000 -1.08,0.28 -1.03,0.23", args[0]);
+        eprintln!(
+            "Example: {} mandel.png 4000x3000 -1.08,0.28 -1.03,0.23",
+            args[0]
+        );
         std::process::exit(1);
     }
 
@@ -52,30 +55,27 @@ fn main() {
 }
 
 fn render_multi_thread_rayon(
-    pixels: &mut[u8],
+    pixels: &mut [u8],
     bounds: (usize, usize),
     upper_left: Complex<f64>,
-    lower_right: Complex<f64>
+    lower_right: Complex<f64>,
 ) {
-    let lines: Vec<(usize, &mut[u8])> = pixels
-        .chunks_mut(bounds.0)
-        .enumerate()
-        .collect();
+    let lines: Vec<(usize, &mut [u8])> = pixels.chunks_mut(bounds.0).enumerate().collect();
 
-    lines.into_par_iter()
-        .for_each(|(top, line)| {
-            let line_bounds = (bounds.0, 1);
-            let line_upper_left = convert_pixel_to_dot(bounds, (0, top), upper_left, lower_right);
-            let line_lower_right = convert_pixel_to_dot(bounds, (bounds.0, top+1), upper_left, lower_right);
-            render(line, line_bounds, line_upper_left, line_lower_right);
-        });
+    lines.into_par_iter().for_each(|(top, line)| {
+        let line_bounds = (bounds.0, 1);
+        let line_upper_left = convert_pixel_to_dot(bounds, (0, top), upper_left, lower_right);
+        let line_lower_right =
+            convert_pixel_to_dot(bounds, (bounds.0, top + 1), upper_left, lower_right);
+        render(line, line_bounds, line_upper_left, line_lower_right);
+    });
 }
 
 fn render_multi_thread_crossbeam(
-    pixels: &mut[u8],
+    pixels: &mut [u8],
     bounds: (usize, usize),
     upper_left: Complex<f64>,
-    lower_right: Complex<f64>
+    lower_right: Complex<f64>,
 ) {
     let threads = num_cpus::get();
     println!("Threads used: {}", threads);
@@ -88,28 +88,34 @@ fn render_multi_thread_crossbeam(
                 let top = rows_in_part * i;
                 let height = part.len() / bounds.0;
                 let part_bounds = (bounds.0, height);
-                let part_upper_left = convert_pixel_to_dot(bounds, (0, top), upper_left, lower_right);
-                let part_lower_right = convert_pixel_to_dot(bounds, (bounds.0, top + height), upper_left, lower_right);
+                let part_upper_left =
+                    convert_pixel_to_dot(bounds, (0, top), upper_left, lower_right);
+                let part_lower_right =
+                    convert_pixel_to_dot(bounds, (bounds.0, top + height), upper_left, lower_right);
                 thread_spawner.spawn(move |_| {
                     render(part, part_bounds, part_upper_left, part_lower_right);
                 });
             }
-
-        }).unwrap();
+        })
+        .unwrap();
     }
 }
 
 fn render_single_thread(
-    pixels: &mut[u8],
+    pixels: &mut [u8],
     bounds: (usize, usize),
     upper_left: Complex<f64>,
-    lower_right: Complex<f64>
+    lower_right: Complex<f64>,
 ) {
-        render(pixels, bounds, upper_left, lower_right);
+    render(pixels, bounds, upper_left, lower_right);
 }
 
 /// dimensions of pixcure are given by bounds
-fn write_image(filename: &str, pixels: &[u8], bounds: (usize, usize)) -> Result<(), std::io::Error> {
+fn write_image(
+    filename: &str,
+    pixels: &[u8],
+    bounds: (usize, usize),
+) -> Result<(), std::io::Error> {
     assert!(pixels.len() == bounds.0 * bounds.1);
 
     let output = File::create(filename)?;
@@ -130,12 +136,15 @@ fn render(
     for row in 0..pixel_frame_col_row.1 {
         for col in 0..pixel_frame_col_row.0 {
             let dot = convert_pixel_to_dot(
-                pixel_frame_col_row, (col, row), dot_left_upper, dot_right_lower);
-            pixels[row * pixel_frame_col_row.0 + col] =
-                match escape_time(dot, 255) {
-                    None => 0,
-                    Some(count) => 255 - count as u8,
-                };
+                pixel_frame_col_row,
+                (col, row),
+                dot_left_upper,
+                dot_right_lower,
+            );
+            pixels[row * pixel_frame_col_row.0 + col] = match escape_time(dot, 255) {
+                None => 0,
+                Some(count) => 255 - count as u8,
+            };
         }
     }
 }
@@ -149,10 +158,8 @@ fn convert_pixel_to_dot(
 ) -> Complex<f64> {
     let dot_frame_width = dot_right_lower.re - dot_left_upper.re;
     let dot_frame_height = dot_left_upper.im - dot_right_lower.im;
-    let dot_re_relative =
-        pixel_col_row.0 as f64 * dot_frame_width / pixel_frame_col_row.0 as f64;
-    let dot_im_relative =
-        pixel_col_row.1 as f64 * dot_frame_height / pixel_frame_col_row.1 as f64;
+    let dot_re_relative = pixel_col_row.0 as f64 * dot_frame_width / pixel_frame_col_row.0 as f64;
+    let dot_im_relative = pixel_col_row.1 as f64 * dot_frame_height / pixel_frame_col_row.1 as f64;
 
     Complex {
         re: dot_left_upper.re + dot_re_relative,

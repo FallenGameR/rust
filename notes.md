@@ -13,6 +13,11 @@ rustup update
 rustup override set stable|nightly
 ```
 
+## Patterns
+
+- Command - <https://smallcultfollowing.com/babysteps/blog/2015/12/18/rayon-data-parallelism-in-rust/#appendix-implementing-sequential-fallback-without-code-duplication>
+- Others - <https://rust-unofficial.github.io/patterns/>
+
 ## Crates
 
 ```ps1
