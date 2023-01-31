@@ -6,6 +6,7 @@
 cargo new <crate name> - creates git as well
 cargo test
 cargo run <arguments>
+cargo add <crate name> - adds crate to the current project
 rustup doc --std
 rustup docs --book
 rustup docs --cargo # Build Scripts
