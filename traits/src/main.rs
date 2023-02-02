@@ -7,13 +7,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let input = include_str!("input.html");
     println!("\n## input\n\n{input}");
 
-    let mut output = vec![];
+    let output = vec![];
     let rewriter = ProcessorType::LazyLoading.build(output);
     process(input, rewriter)?;
     println!("\n## output\n\n{}", std::str::from_utf8(&output).unwrap());
 
     let input = std::str::from_utf8(&output[..])?;
-    let mut output = vec![];
+    let output = vec![];
     let escaper = ProcessorType::HtmlEscape.build(output);
     process(input, escaper)?;
     println!("\n## output\n\n{}", std::str::from_utf8(&output).unwrap());
@@ -49,12 +49,12 @@ impl ProcessorType {
 
 trait Processor {
     fn write(&mut self, chunk: &[u8]) -> Result<(), Box<dyn Error>>;
-    fn end(self) -> Result<(), Box<dyn Error>>;
+    fn end(self: Box<Self>) -> Result<(), Box<dyn Error>>;
 }
 
 // Code will be simplified if input here is &[u8]
 // But then printlns will all need to be updated
-fn process<P: Processor>(input: &str, mut processor: P) -> Result<(), Box<dyn Error>> {
+fn process(input: &str, mut processor: Box<dyn Processor>) -> Result<(), Box<dyn Error>> {
     processor.write(input.as_bytes())?;
     processor.end()?;
     Ok(())
@@ -65,8 +65,8 @@ impl<'processor, Output: OutputSink> Processor for HtmlRewriter<'processor, Outp
         HtmlRewriter::write(self, chunk).map_err(Into::into)
     }
 
-    fn end(self) -> Result<(), Box<dyn Error>> {
-        HtmlRewriter::end(self).map_err(Into::into)
+    fn end(self: Box<Self>) -> Result<(), Box<dyn Error>> {
+        HtmlRewriter::end(*self).map_err(Into::into)
     }
 }
 
@@ -75,18 +75,8 @@ impl<Write: std::io::Write> Processor for Escaper<Write> {
         encode_safe_to_writer(std::str::from_utf8(chunk)?, &mut self.output).map_err(Into::into)
     }
 
-    fn end(self) -> Result<(), Box<dyn Error>> {
+    fn end(self: Box<Self>) -> Result<(), Box<dyn Error>> {
         Ok(())
-    }
-}
-
-impl<T: Processor + ?Sized> Processor for Box<T> {
-    fn write(&mut self, chunk: &[u8]) -> Result<(), Box<dyn Error>> {
-        T::write(self, chunk)
-    }
-
-    fn end(self) -> Result<(), Box<dyn Error>> {
-        T::end(*self)
     }
 }
 
