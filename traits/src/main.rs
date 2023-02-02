@@ -36,10 +36,10 @@ enum ProcessorType{
 }
 
 impl ProcessorType {
-    fn build<W: std::io::Write>(&self, output: W) -> dyn Processor {
+    fn build<W: std::io::Write>(&self, output: W) -> Box<dyn Processor> {
         match self {
             ProcessorType::LazyLoading => {
-                HtmlRewriter::new(
+                Box::new(HtmlRewriter::new(
                     Settings {
                         element_content_handlers: vec![element!("img", |el| {
                             el.set_attribute("loading", "lazy")?;
@@ -47,17 +47,17 @@ impl ProcessorType {
                         })],
                         ..Default::default()
                     },
-                    |c: &[u8]| output.write_all(c),
-                )
+                    |buffer: &[u8]| output.write_all(buffer).unwrap(),
+                ))
             },
             ProcessorType::HtmlEscape => {
-                Escaper{ output: &mut output }
-            },
+                Box::new(Escaper{ output: &mut output })
+            }
         }
     }
 }
 
-trait Processor: Sized{
+trait Processor {
     fn write(&mut self, chunk: &[u8]) -> Result<(), Box<dyn Error>>;
     fn end(self) -> Result<(), Box<dyn Error>>;
 }
