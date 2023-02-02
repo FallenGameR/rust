@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use html_escape::encode_safe_to_writer;
-use lol_html::{element, HtmlRewriter, Settings, OutputSink};
+use lol_html::{element, HtmlRewriter, OutputSink, Settings};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let input = include_str!("input.html");
@@ -23,36 +23,37 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let input = std::str::from_utf8(&output[..])?;
     let mut output = vec![];
-    let escaper = Escaper{ output: &mut output };
+    let escaper = Escaper {
+        output: &mut output,
+    };
     process(input, escaper)?;
     println!("\n## output\n\n{}", std::str::from_utf8(&output).unwrap());
 
     Ok(())
 }
 
-enum ProcessorType{
+enum ProcessorType {
     LazyLoading,
-    HtmlEscape
+    HtmlEscape,
 }
 
 impl ProcessorType {
-    fn build<'write, W: std::io::Write + 'write>(&self, mut output: W) -> Box<dyn Processor + 'write> {
+    fn build<'write, W>(&self, mut output: W) -> Box<dyn Processor + 'write>
+    where
+        W: std::io::Write + 'write
+    {
         match self {
-            ProcessorType::LazyLoading => {
-                Box::new(HtmlRewriter::new(
-                    Settings {
-                        element_content_handlers: vec![element!("img", |el| {
-                            el.set_attribute("loading", "lazy")?;
-                            Ok(())
-                        })],
-                        ..Default::default()
-                    },
-                    move |buffer: &[u8]| output.write_all(buffer).unwrap(),
-                ))
-            },
-            ProcessorType::HtmlEscape => {
-                Box::new(Escaper{ output })
-            }
+            ProcessorType::LazyLoading => Box::new(HtmlRewriter::new(
+                Settings {
+                    element_content_handlers: vec![element!("img", |el| {
+                        el.set_attribute("loading", "lazy")?;
+                        Ok(())
+                    })],
+                    ..Default::default()
+                },
+                move |buffer: &[u8]| output.write_all(buffer).unwrap(),
+            )),
+            ProcessorType::HtmlEscape => Box::new(Escaper { output }),
         }
     }
 }
@@ -64,13 +65,13 @@ trait Processor {
 
 // Code will be simplified if input here is &[u8]
 // But then printlns will all need to be updated
-fn process<P: Processor>(input: &str, mut processor: P) -> Result<(), Box<dyn Error>>{
+fn process<P: Processor>(input: &str, mut processor: P) -> Result<(), Box<dyn Error>> {
     processor.write(input.as_bytes())?;
     processor.end()?;
     Ok(())
 }
 
-impl<'processor, Output: OutputSink> Processor for HtmlRewriter<'processor, Output>{
+impl<'processor, Output: OutputSink> Processor for HtmlRewriter<'processor, Output> {
     fn write(&mut self, chunk: &[u8]) -> Result<(), Box<dyn Error>> {
         HtmlRewriter::write(self, chunk).map_err(Into::into)
     }
@@ -91,5 +92,5 @@ impl<Write: std::io::Write> Processor for Escaper<Write> {
 }
 
 struct Escaper<Write: std::io::Write> {
-    output: Write
+    output: Write,
 }
