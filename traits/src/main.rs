@@ -30,7 +30,34 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-trait Processor{
+enum ProcessorType{
+    LazyLoading,
+    HtmlEscape
+}
+
+impl ProcessorType {
+    fn build<W: std::io::Write>(&self, output: W) -> dyn Processor {
+        match self {
+            ProcessorType::LazyLoading => {
+                HtmlRewriter::new(
+                    Settings {
+                        element_content_handlers: vec![element!("img", |el| {
+                            el.set_attribute("loading", "lazy")?;
+                            Ok(())
+                        })],
+                        ..Default::default()
+                    },
+                    |c: &[u8]| output.write_all(c),
+                )
+            },
+            ProcessorType::HtmlEscape => {
+                Escaper{ output: &mut output }
+            },
+        }
+    }
+}
+
+trait Processor: Sized{
     fn write(&mut self, chunk: &[u8]) -> Result<(), Box<dyn Error>>;
     fn end(self) -> Result<(), Box<dyn Error>>;
 }
