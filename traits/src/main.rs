@@ -8,7 +8,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("\n## input\n\n{input}");
 
     let mut output = vec![];
-    let mut rewriter = HtmlRewriter::new(
+    let rewriter = HtmlRewriter::new(
         Settings {
             element_content_handlers: vec![element!("img", |el| {
                 el.set_attribute("loading", "lazy")?;
@@ -18,15 +18,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         },
         |c: &[u8]| output.extend_from_slice(c),
     );
-    process(input, &mut rewriter)?;
-    rewriter.end()?;
+    process(input, rewriter)?;
     println!("\n## output\n\n{}", std::str::from_utf8(&output).unwrap());
 
     let input = std::str::from_utf8(&output[..])?;
     let mut output = vec![];
-    let mut escaper = Escaper{ output: &mut output };
-    process(input, &mut escaper)?;
-    escaper.end()?;
+    let escaper = Escaper{ output: &mut output };
+    process(input, escaper)?;
     println!("\n## output\n\n{}", std::str::from_utf8(&output).unwrap());
 
     Ok(())
@@ -39,8 +37,9 @@ trait Processor{
 
 // Code will be simplified if input here is &[u8]
 // But then printlns will all need to be updated
-fn process(input: &str, processor: &mut dyn Processor) -> Result<(), Box<dyn Error>>{
+fn process<P: Processor>(input: &str, mut processor: P) -> Result<(), Box<dyn Error>>{
     processor.write(input.as_bytes())?;
+    processor.end()?;
     Ok(())
 }
 
