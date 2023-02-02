@@ -8,24 +8,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("\n## input\n\n{input}");
 
     let mut output = vec![];
-    let rewriter = HtmlRewriter::new(
-        Settings {
-            element_content_handlers: vec![element!("img", |el| {
-                el.set_attribute("loading", "lazy")?;
-                Ok(())
-            })],
-            ..Default::default()
-        },
-        |c: &[u8]| output.extend_from_slice(c),
-    );
+    let rewriter = ProcessorType::LazyLoading.build(output);
     process(input, rewriter)?;
     println!("\n## output\n\n{}", std::str::from_utf8(&output).unwrap());
 
     let input = std::str::from_utf8(&output[..])?;
     let mut output = vec![];
-    let escaper = Escaper {
-        output: &mut output,
-    };
+    let escaper = ProcessorType::HtmlEscape.build(output);
     process(input, escaper)?;
     println!("\n## output\n\n{}", std::str::from_utf8(&output).unwrap());
 
@@ -88,6 +77,16 @@ impl<Write: std::io::Write> Processor for Escaper<Write> {
 
     fn end(self) -> Result<(), Box<dyn Error>> {
         Ok(())
+    }
+}
+
+impl<T: Processor + ?Sized> Processor for Box<T> {
+    fn write(&mut self, chunk: &[u8]) -> Result<(), Box<dyn Error>> {
+        T::write(self, chunk)
+    }
+
+    fn end(self) -> Result<(), Box<dyn Error>> {
+        T::end(*self)
     }
 }
 
