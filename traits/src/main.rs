@@ -35,8 +35,8 @@ enum ProcessorType{
     HtmlEscape
 }
 
-impl ProcessorType {
-    fn build<W: std::io::Write>(&self, output: W) -> Box<dyn Processor> {
+impl<'write> ProcessorType {
+    fn build<W: std::io::Write + 'write>(&self, mut output: W) -> Box<dyn Processor + 'write> {
         match self {
             ProcessorType::LazyLoading => {
                 Box::new(HtmlRewriter::new(
@@ -47,11 +47,11 @@ impl ProcessorType {
                         })],
                         ..Default::default()
                     },
-                    |buffer: &[u8]| output.write_all(buffer).unwrap(),
+                    move |buffer: &[u8]| output.write_all(buffer).unwrap(),
                 ))
             },
             ProcessorType::HtmlEscape => {
-                Box::new(Escaper{ output: &mut output })
+                Box::new(Escaper{ output })
             }
         }
     }
