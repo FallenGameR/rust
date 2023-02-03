@@ -54,6 +54,11 @@ trait Processor {
 
 // Code will be simplified if input here is &[u8]
 // But then printlns will all need to be updated
+//
+// By default Processor trait has 'static lifetime that was added as amend RFC
+// https://github.com/rust-lang/rfcs/blob/master/text/1156-adjust-default-object-bounds.md
+// This is consistent with the mental model of "once you box up an object,
+// you must add annotations for it to contain borrowed data".
 fn process(input: &str, mut processor: Box<dyn Processor + '_>) -> Result<(), Box<dyn Error>> {
     processor.write(input.as_bytes())?;
     processor.end()?;
