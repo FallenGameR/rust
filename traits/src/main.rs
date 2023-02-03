@@ -7,14 +7,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let input = include_str!("input.html");
     println!("\n## input\n\n{input}");
 
-    let output = vec![];
-    let rewriter = ProcessorType::LazyLoading.build(output);
+    let mut output = vec![];
+    let rewriter = ProcessorType::LazyLoading.build(&mut output);
     process(input, rewriter)?;
     println!("\n## output\n\n{}", std::str::from_utf8(&output).unwrap());
 
     let input = std::str::from_utf8(&output[..])?;
-    let output = vec![];
-    let escaper = ProcessorType::HtmlEscape.build(output);
+    let mut output = vec![];
+    let escaper = ProcessorType::HtmlEscape.build(&mut output);
     process(input, escaper)?;
     println!("\n## output\n\n{}", std::str::from_utf8(&output).unwrap());
 
@@ -54,7 +54,7 @@ trait Processor {
 
 // Code will be simplified if input here is &[u8]
 // But then printlns will all need to be updated
-fn process(input: &str, mut processor: Box<dyn Processor>) -> Result<(), Box<dyn Error>> {
+fn process(input: &str, mut processor: Box<dyn Processor + '_>) -> Result<(), Box<dyn Error>> {
     processor.write(input.as_bytes())?;
     processor.end()?;
     Ok(())
