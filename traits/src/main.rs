@@ -40,7 +40,7 @@ impl<W: std::io::Write> OutputSink for WriterOutputSink<W> {
 impl ProcessorType {
     fn build<'w, W: std::io::Write + 'w>(&self, output: W) -> ProcessorImpl<W> {
         match self {
-            ProcessorType::LazyLoading => ProcessorImpl::LazyLoading(HtmlRewriter::new(
+            ProcessorType::LazyLoading => HtmlRewriter::new(
                 Settings {
                     element_content_handlers: vec![element!("img", |el| {
                         el.set_attribute("loading", "lazy")?;
@@ -49,8 +49,8 @@ impl ProcessorType {
                     ..Default::default()
                 },
                 WriterOutputSink { writer: output },
-            )),
-            ProcessorType::HtmlEscape => ProcessorImpl::HtmlEscape(Escaper { output }),
+            ).into(),
+            ProcessorType::HtmlEscape => Escaper { output }.into(),
         }
     }
 }
