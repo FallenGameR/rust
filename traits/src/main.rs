@@ -26,13 +26,25 @@ enum ProcessorType {
     HtmlEscape,
 }
 
+enum ProcessorImpl<W: std::io::Write> {
+    LazyLoading(HtmlRewriter<'static, WriterOutputSink<W>>) ,
+    HtmlEscape(Escaper<W>),
+}
+
+struct WriterOutputSink<W> {
+    writer: W
+}
+
+impl<W: std::io::Write> OutputSink for WriterOutputSink<W> {
+    fn handle_chunk(&mut self, chunk: &[u8]) {
+        self.writer.write_all(chunk).unwrap()
+    }
+}
+
 impl ProcessorType {
-    fn build<'write, W>(&self, mut output: W) -> Box<dyn Processor + 'write>
-    where
-        W: std::io::Write + 'write
-    {
+    fn build<'w, W: std::io::Write + 'w>(&self, output: W) -> ProcessorImpl<W> {
         match self {
-            ProcessorType::LazyLoading => Box::new(HtmlRewriter::new(
+            ProcessorType::LazyLoading => ProcessorImpl::LazyLoading(HtmlRewriter::new(
                 Settings {
                     element_content_handlers: vec![element!("img", |el| {
                         el.set_attribute("loading", "lazy")?;
@@ -40,16 +52,32 @@ impl ProcessorType {
                     })],
                     ..Default::default()
                 },
-                move |buffer: &[u8]| output.write_all(buffer).unwrap(),
+                WriterOutputSink { writer: output },
             )),
-            ProcessorType::HtmlEscape => Box::new(Escaper { output }),
+            ProcessorType::HtmlEscape => ProcessorImpl::HtmlEscape(Escaper { output }),
+        }
+    }
+}
+
+impl<W: std::io::Write> Processor for ProcessorImpl<W> {
+    fn write(&mut self, chunk: &[u8]) -> Result<(), Box<dyn Error>> {
+        match self {
+            ProcessorImpl::LazyLoading(processor) => processor.write(chunk).map_err(Into::into),
+            ProcessorImpl::HtmlEscape(processor) => encode_safe_to_writer(std::str::from_utf8(chunk)?, &mut processor.output).map_err(Into::into),
+        }
+    }
+
+    fn end(self) -> Result<(), Box<dyn Error>> {
+        match self {
+            ProcessorImpl::LazyLoading(processor) => processor.end().map_err(Into::into),
+            ProcessorImpl::HtmlEscape(_) => Ok(()),
         }
     }
 }
 
 trait Processor {
     fn write(&mut self, chunk: &[u8]) -> Result<(), Box<dyn Error>>;
-    fn end(self: Box<Self>) -> Result<(), Box<dyn Error>>;
+    fn end(self) -> Result<(), Box<dyn Error>>;
 }
 
 // Code will be simplified if input here is &[u8]
@@ -59,30 +87,10 @@ trait Processor {
 // https://github.com/rust-lang/rfcs/blob/master/text/1156-adjust-default-object-bounds.md
 // This is consistent with the mental model of "once you box up an object,
 // you must add annotations for it to contain borrowed data".
-fn process(input: &str, mut processor: Box<dyn Processor + '_>) -> Result<(), Box<dyn Error>> {
+fn process<P: Processor>(input: &str, mut processor: P) -> Result<(), Box<dyn Error>> {
     processor.write(input.as_bytes())?;
     processor.end()?;
     Ok(())
-}
-
-impl<'processor, Output: OutputSink> Processor for HtmlRewriter<'processor, Output> {
-    fn write(&mut self, chunk: &[u8]) -> Result<(), Box<dyn Error>> {
-        HtmlRewriter::write(self, chunk).map_err(Into::into)
-    }
-
-    fn end(self: Box<Self>) -> Result<(), Box<dyn Error>> {
-        HtmlRewriter::end(*self).map_err(Into::into)
-    }
-}
-
-impl<Write: std::io::Write> Processor for Escaper<Write> {
-    fn write(&mut self, chunk: &[u8]) -> Result<(), Box<dyn Error>> {
-        encode_safe_to_writer(std::str::from_utf8(chunk)?, &mut self.output).map_err(Into::into)
-    }
-
-    fn end(self: Box<Self>) -> Result<(), Box<dyn Error>> {
-        Ok(())
-    }
 }
 
 struct Escaper<Write: std::io::Write> {
