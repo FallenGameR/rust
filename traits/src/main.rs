@@ -1,5 +1,6 @@
 use std::error::Error;
 
+use enum_dispatch::enum_dispatch;
 use html_escape::encode_safe_to_writer;
 use lol_html::{element, HtmlRewriter, OutputSink, Settings};
 
@@ -24,11 +25,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 enum ProcessorType {
     LazyLoading,
     HtmlEscape,
-}
-
-enum ProcessorImpl<W: std::io::Write> {
-    LazyLoading(HtmlRewriter<'static, WriterOutputSink<W>>) ,
-    HtmlEscape(Escaper<W>),
 }
 
 struct WriterOutputSink<W> {
@@ -59,25 +55,36 @@ impl ProcessorType {
     }
 }
 
-impl<W: std::io::Write> Processor for ProcessorImpl<W> {
+impl<'processor, Output: OutputSink> Processor for HtmlRewriter<'processor, Output> {
     fn write(&mut self, chunk: &[u8]) -> Result<(), Box<dyn Error>> {
-        match self {
-            ProcessorImpl::LazyLoading(processor) => processor.write(chunk).map_err(Into::into),
-            ProcessorImpl::HtmlEscape(processor) => encode_safe_to_writer(std::str::from_utf8(chunk)?, &mut processor.output).map_err(Into::into),
-        }
+        HtmlRewriter::write(self, chunk).map_err(Into::into)
     }
 
     fn end(self) -> Result<(), Box<dyn Error>> {
-        match self {
-            ProcessorImpl::LazyLoading(processor) => processor.end().map_err(Into::into),
-            ProcessorImpl::HtmlEscape(_) => Ok(()),
-        }
+        HtmlRewriter::end(self).map_err(Into::into)
     }
 }
 
+impl<Write: std::io::Write> Processor for Escaper<Write> {
+    fn write(&mut self, chunk: &[u8]) -> Result<(), Box<dyn Error>> {
+        encode_safe_to_writer(std::str::from_utf8(chunk)?, &mut self.output).map_err(Into::into)
+    }
+
+    fn end(self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+}
+
+#[enum_dispatch]
 trait Processor {
     fn write(&mut self, chunk: &[u8]) -> Result<(), Box<dyn Error>>;
     fn end(self) -> Result<(), Box<dyn Error>>;
+}
+
+#[enum_dispatch(Processor)]
+enum ProcessorImpl<W: std::io::Write> {
+    LazyLoading(HtmlRewriter<'static, WriterOutputSink<W>>) ,
+    HtmlEscape(Escaper<W>),
 }
 
 // Code will be simplified if input here is &[u8]
