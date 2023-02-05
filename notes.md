@@ -61,3 +61,8 @@ In case performance measurements are needed here is how to compare options:
 - "Result {result} is {2 + 2}".(format|panic|println|log...) - expands string to formatted output statement
 - highlight related - cursor on something highlights all related control statements
 - rust-analyzer: Join lines - collapse array definitions in a smart way
+- postfix completions: .if .match .while .let .call .pd tfn tmod
+- rust-analyzer: Find matching brace - goes to the matching brace
+- rust-analyzer: Move Item Up|Down - moves block of code up or down semantically
+- `// foo($a, $b) ==>> ($a).foo($b)` - semantic replace, use code assist to apply, must be a valid replacement
+- Expland impl Trait to generic in code like `fn foo(bar: impl Bar) {}`
