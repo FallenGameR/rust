@@ -12,6 +12,7 @@ rustup docs --book
 rustup docs --cargo # Build Scripts
 rustup update
 rustup override set stable|nightly
+cargo +nightly build -p rust-analyzer --bin rust-analyzer -Z timings --release
 ```
 
 ## Patterns
