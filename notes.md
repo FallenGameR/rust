@@ -24,6 +24,7 @@ cargo +nightly build -p rust-analyzer --bin rust-analyzer -Z timings --release
 
 ```ps1
 - Errors: anyhow, error_chain, thiserror - https://www.shuttle.rs/blog/2022/06/30/error-handling # makes error handling easier
+- Colorful errors - https://lib.rs/crates/color-eyre # panics are using nice colored output in the console
 - dashmap # high performance multithreaded hashmap
 - bindgen # automates bindings to C libs
 - encoding # work with different encodings
