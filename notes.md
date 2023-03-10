@@ -24,7 +24,7 @@ cargo +nightly build -p rust-analyzer --bin rust-analyzer -Z timings --release
 ## Crates
 
 ```ps1
-- Errors: anyhow, error_chain, thiserror - https://www.shuttle.rs/blog/2022/06/30/error-handling # makes error handling easier
+- Errors: anyhow, error_chain, thiserror, failure (adds callstack) - https://www.shuttle.rs/blog/2022/06/30/error-handling # makes error handling easier
 - Colorful errors - https://lib.rs/crates/color-eyre # panics are using nice colored output in the console
 - dashmap # high performance multithreaded hashmap
 - bindgen # automates bindings to C libs
@@ -32,6 +32,7 @@ cargo +nightly build -p rust-analyzer --bin rust-analyzer -Z timings --release
 - messagepack # like protobuf but without schema
 - websocket protocol # like http2 but faster and binary
 - hdrhistogram # for ping times study or for temperatures study on Arduino
+- maplit # more readable syntax for hashmap initialization
 ```
 
 ## URLs
