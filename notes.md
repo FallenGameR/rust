@@ -40,6 +40,7 @@ cargo +nightly build -p rust-analyzer --bin rust-analyzer -Z timings --release
 - [Crates available](https://crates.io/)
 - [Performance improvements](https://endler.dev/2020/rust-compile-times/)
 - [Web API testing sample](https://blog.logrocket.com/end-to-end-testing-for-rust-web-services/)
+- [x64dbg](https://x64dbg.com/) open source windows debugger
 
 ## Performance measurement
 
@@ -55,6 +56,15 @@ In case performance measurements are needed here is how to compare options:
         --export-markdown "test_performance.md" `
         -n "Build-in" "cargo test -q" `
         -n "NextTest" "cargo nextest run"
+```
+
+## Performance tips
+
+Enable link time optimization so calls across different crates will be optimized away.
+
+```text
+[profile.release]
+lto = true
 ```
 
 ## rust-analyzer
