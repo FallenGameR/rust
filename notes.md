@@ -24,7 +24,15 @@ cargo +nightly build -p rust-analyzer --bin rust-analyzer -Z timings --release
 ## Crates
 
 ```ps1
-- Errors: anyhow, error_chain, thiserror, failure (adds callstack) - https://www.shuttle.rs/blog/2022/06/30/error-handling # makes error handling easier
+- Errors
+  - anyhow
+  - error_chain
+  - thiserror - short and useful custom errors via macros
+  - failure - adds callstack to errors, useful in app code, but not expected in lib code
+  - better-panic - colorful panics, but will conflict with failure
+  - color-backtrace - color stack traces of failure manually
+- https://fasterthanli.me/series/making-our-own-ping/part-10 # error handling use cases from Amos
+- https://www.shuttle.rs/blog/2022/06/30/error-handling # makes error handling easier
 - Colorful errors - https://lib.rs/crates/color-eyre # panics are using nice colored output in the console
 - dashmap # high performance multithreaded hashmap
 - bindgen # automates bindings to C libs
@@ -34,6 +42,10 @@ cargo +nightly build -p rust-analyzer --bin rust-analyzer -Z timings --release
 - hdrhistogram # for ping times study or for temperatures study on Arduino
 - maplit # more readable syntax for hashmap initialization
 ```
+
+## Error notes
+
+- Make errors that are function specific - they will have a mathcing name and be focused at only a single domain area
 
 ## URLs
 
