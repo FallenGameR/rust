@@ -28,6 +28,7 @@ extern crate num_cpus;
 /// - Omen-17   - 0.5 sec
 /// - Matthew   - 0.4 sec
 /// - ALEXKO-11 - 0.3 sec
+/// - RANMA     - 0.175 sec
 fn main() {
     let args: Vec<String> = env::args().collect();
 
