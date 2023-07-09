@@ -14,13 +14,13 @@ extern crate num_cpus;
 ///
 /// Single thread:
 /// - SEKIREI   - 5.6 sec
-/// - ALEXKO-11 - 4.2 sec x1.3
 /// - ALEXKO-LS - 6.5 sec x0.8
+/// - ALEXKO-11 - 4.2 sec x1.3
 ///
 /// Multi thread:
 /// - SEKIREI   - 3.0 sec
-/// - ALEXKO-11 - 0.5 sec x6
 /// - ALEXKO-LS - 1.1 sec x2.7
+/// - ALEXKO-11 - 0.5 sec x6
 ///
 /// Rayon mutithread
 /// - SEKIREI   - 1.9 sec
