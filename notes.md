@@ -7,6 +7,7 @@ cargo new <crate name> - creates git as well
 cargo test
 cargo run <arguments>
 cargo add <crate name> - adds crate to the current project
+cargo doc --open # generate docs for the current rust project
 rustup doc --std
 rustup docs --book
 rustup docs --cargo # Build Scripts
@@ -23,7 +24,15 @@ cargo +nightly build -p rust-analyzer --bin rust-analyzer -Z timings --release
 ## Crates
 
 ```ps1
-- Errors: anyhow, error_chain, thiserror - https://www.shuttle.rs/blog/2022/06/30/error-handling # makes error handling easier
+- Errors
+  - anyhow
+  - error_chain
+  - thiserror - short and useful custom errors via macros
+  - failure - adds callstack to errors, useful in app code, but not expected in lib code
+  - better-panic - colorful panics, but will conflict with failure
+  - color-backtrace - color stack traces of failure manually
+- https://fasterthanli.me/series/making-our-own-ping/part-10 # error handling use cases from Amos
+- https://www.shuttle.rs/blog/2022/06/30/error-handling # makes error handling easier
 - Colorful errors - https://lib.rs/crates/color-eyre # panics are using nice colored output in the console
 - dashmap # high performance multithreaded hashmap
 - bindgen # automates bindings to C libs
@@ -31,13 +40,19 @@ cargo +nightly build -p rust-analyzer --bin rust-analyzer -Z timings --release
 - messagepack # like protobuf but without schema
 - websocket protocol # like http2 but faster and binary
 - hdrhistogram # for ping times study or for temperatures study on Arduino
+- maplit # more readable syntax for hashmap initialization
 ```
+
+## Error notes
+
+- Make errors that are function specific - they will have a mathcing name and be focused at only a single domain area
 
 ## URLs
 
 - [Crates available](https://crates.io/)
 - [Performance improvements](https://endler.dev/2020/rust-compile-times/)
 - [Web API testing sample](https://blog.logrocket.com/end-to-end-testing-for-rust-web-services/)
+- [x64dbg](https://x64dbg.com/) open source windows debugger
 
 ## Performance measurement
 
@@ -53,6 +68,15 @@ In case performance measurements are needed here is how to compare options:
         --export-markdown "test_performance.md" `
         -n "Build-in" "cargo test -q" `
         -n "NextTest" "cargo nextest run"
+```
+
+## Performance tips
+
+Enable link time optimization so calls across different crates will be optimized away.
+
+```text
+[profile.release]
+lto = true
 ```
 
 ## rust-analyzer
