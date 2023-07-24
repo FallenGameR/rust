@@ -45,7 +45,7 @@ cargo +nightly build -p rust-analyzer --bin rust-analyzer -Z timings --release
 
 ## Error notes
 
-- Make errors that are function specific - they will have a mathcing name and be focused at only a single domain area
+- Make errors that are function specific - they will have a mathcing name and be focused at only a single domain area.
 
 ## URLs
 
