@@ -13,27 +13,30 @@ extern crate num_cpus;
 /// cargo run mandel.png 1000x750 -1.08,0.28 -1.03,0.23; start mandel.png
 ///
 /// Single thread:
-/// - ALEXKO-LS - 6.5 sec x0.8
-/// - SEKIREI   - 5.6 sec
-/// - ALEXKO-11 - 4.2 sec x1.3
-/// - Framework - 3.3 sec x2
-/// - RANMA     - 2.8 sec x2.3
+/// - ALEXKO-LS     - 6.5 sec x0.8
+/// - SEKIREI       - 5.6 sec
+/// - ALEXKO-11     - 4.2 sec x1.3
+/// - Framework     - 3.3 sec x2
+/// - ALEXKO-SLS2   - 3.0 sec
+/// - RANMA         - 2.8 sec x2.3
 ///
 /// Multi thread:
-/// - SEKIREI   - 3.0 sec
-/// - ALEXKO-LS - 1.1 sec x2.7
-/// - Framework - 0.8 sec
-/// - ALEXKO-11 - 0.5 sec x6
-/// - RANMA     - 0.26
+/// - SEKIREI       - 3.0 sec
+/// - ALEXKO-LS     - 1.1 sec x2.7
+/// - Framework     - 0.8 sec
+/// - ALEXKO-SLS2   - 0.5 sec
+/// - ALEXKO-11     - 0.5 sec x6
+/// - RANMA         - 0.26
 ///
 /// Rayon mutithread
-/// - SEKIREI   - 1.9 sec
-/// - ALEXKO-LS - 0.7 sec
-/// - Omen-17   - 0.5 sec
-/// - Framework - 0.5 sec
-/// - Matthew   - 0.4 sec
-/// - ALEXKO-11 - 0.3 sec
-/// - RANMA     - 0.175 sec
+/// - SEKIREI       - 1.9 sec
+/// - ALEXKO-LS     - 0.7 sec
+/// - Omen-17       - 0.5 sec
+/// - Framework     - 0.5 sec
+/// - Matthew       - 0.4 sec
+/// - ALEXKO-SLS2   - 0.3 sec
+/// - ALEXKO-11     - 0.3 sec
+/// - RANMA         - 0.175 sec
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -52,10 +55,10 @@ fn main() {
     let mut pixels = vec![0; bounds.0 * bounds.1];
 
     // Single threaded
-    //render_single_thread(&mut pixels, bounds, upper_left, lower_right);
+    render_single_thread(&mut pixels, bounds, upper_left, lower_right);
 
     // Multi threaded crossbeam - chunk per thread
-    render_multi_thread_crossbeam(&mut pixels, bounds, upper_left, lower_right);
+    //render_multi_thread_crossbeam(&mut pixels, bounds, upper_left, lower_right);
 
     // Multi threaded rayon - line per thread
     //render_multi_thread_rayon(&mut pixels, bounds, upper_left, lower_right);
