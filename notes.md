@@ -81,6 +81,7 @@ lto = true
 
 ## rust-analyzer
 
+- Ctrl+Alt: preview the types deduced by the compiler
 - rust-analyzer: Expand macro recursively - expand macro
 - Alt+Shift+(Left|Right) - semantic block selection
 - Ctrl+Shift+O - symbol or section search
